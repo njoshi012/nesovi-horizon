@@ -1,0 +1,321 @@
+{% # Flexi Popup Overlay %}
+<div class="flexi-popup-overlay"></div>
+          
+{% # Flexi Popup Container %}
+<div class="flexi-popup-container">
+  <button class="close-flexi-popup" aria-label="Close">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" fill="#0F1729"/>
+</svg>
+  </button>
+  <div class="flexi-popup-header large-hide">
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"/>
+    </svg>
+  </div>
+  <div class="flexi-popup-content">
+    <div class="popup-media-column">
+      <div class="popup-product-images"></div>
+    </div>
+    <div class="popup-content-column">
+      <h2 class="popup-product-title"></h2>
+      <div class="popup-product-rating"></div>
+      <div class="popup-product-price-wrapper">
+        <div class="popup-product-price"></div>
+        <div class="popup-product-compare-at-price"></div>
+      </div>
+      <div class="popup-product-description"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const flexiPopupSlider = document.querySelector(".flexi-popup-container");
+    const flexiPopupOverlay = document.querySelector(".flexi-popup-overlay");
+    const closeFlexiPopup = document.querySelector(".close-flexi-popup");
+    const popupContent = document.querySelector(".flexi-popup-content");
+  
+    // Open popup and populate content
+    document.querySelectorAll(".flexi-popup-trigger").forEach(function(trigger) {
+      trigger.addEventListener("click", function(e) {
+        if (e.target.closest('.slider-pagination')) return;
+  
+        // Get the product-info context
+        const productInfo = this.closest('.product-info');
+        if (!productInfo) return;
+  
+        // Clone product images slider
+        const imageSlider = productInfo.querySelector('.product-images-slider');
+        const clonedSlider = imageSlider ? imageSlider.cloneNode(true) : null;
+  
+        // Clone rating
+        const rating = productInfo.querySelector('.rating');
+        const clonedRating = rating ? rating.cloneNode(true) : null;
+  
+        // Get other data attributes
+        const title = this.getAttribute("data-title") || "";
+        const price = this.getAttribute("data-price") || "";
+        const compareAtPrice = this.getAttribute("data-compare-at-price") || "";
+        const description = this.getAttribute("data-description") || "";
+  
+        // Insert content into popup
+        const popupImages = popupContent.querySelector('.popup-product-images');
+        const popupTitle = popupContent.querySelector('.popup-product-title');
+        const popupRating = popupContent.querySelector('.popup-product-rating');
+        const popupPrice = popupContent.querySelector('.popup-product-price');
+        const popupCompareAtPrice = popupContent.querySelector('.popup-product-compare-at-price');
+        const popupDescription = popupContent.querySelector('.popup-product-description');
+  
+        // Clear previous content
+        if (popupImages) popupImages.innerHTML = "";
+        if (popupRating) popupRating.innerHTML = "";
+  
+        // Insert cloned image slider
+        if (popupImages && clonedSlider) {
+          popupImages.appendChild(clonedSlider);
+          initProductImagesSlider(clonedSlider);
+          // Reset scroll to first slide and update active dot
+          const slider = clonedSlider.querySelector('.slider-wrapper');
+          if (slider) {
+            slider.scrollLeft = 0;
+            slider.dispatchEvent(new Event('scroll'));
+          }
+        }
+  
+        // Insert cloned rating
+        if (popupRating && clonedRating) {
+          popupRating.appendChild(clonedRating);
+        }
+  
+        // Insert other details
+        if (popupTitle) popupTitle.innerHTML = title;
+        if (popupPrice) popupPrice.innerHTML = price;
+        if (popupCompareAtPrice) popupCompareAtPrice.innerHTML = compareAtPrice;
+        if (popupDescription) popupDescription.innerHTML = description;
+  
+        // Reset scroll positions
+        popupContent.scrollTop = 0;
+  
+        // Show popup
+        flexiPopupSlider.classList.add("active");
+        flexiPopupOverlay.classList.add("active");
+        closeFlexiPopup.classList.add("show");
+        document.body.classList.add('overflow-hidden');
+      });
+    });
+  
+    // Hide popup function
+    function hideFlexiPopup() {
+      flexiPopupSlider.classList.remove("active");
+      flexiPopupOverlay.classList.remove("active");
+      closeFlexiPopup.classList.remove("show");
+      document.body.classList.remove('overflow-hidden');
+    }
+  
+    // Close popup on close button or overlay click
+    if (closeFlexiPopup) {
+      closeFlexiPopup.addEventListener("click", hideFlexiPopup);
+    }
+    if (flexiPopupOverlay) {
+      flexiPopupOverlay.addEventListener("click", hideFlexiPopup);
+    }
+  });
+</script>
+
+<style>
+  .flexi-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease-in-out;
+    z-index: 9980;
+    margin: 0 !important;
+  }
+  .flexi-popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .close-flexi-popup {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border: none;
+    padding: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    line-height: 1;
+    margin-bottom: auto;
+    border-radius: 50%;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .close-flexi-popup.show {
+    opacity: 1;
+    visibility: visible;
+  } 
+  .flexi-popup-trigger {
+    cursor: pointer;
+  }
+  .flexi-popup-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: 70vh;
+    padding-inline: 1.5rem;
+  }
+  .flexi-popup-header {
+    display: flex;
+    justify-content: center;
+  }
+  /* Mobile CSS */
+  @media screen and (max-width: 749px) {
+    .flexi-popup-container {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      max-height: 90vh;
+      background: #fff;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 1.2rem 1.2rem 0 0;
+      transition: bottom 0.4s ease-in-out;
+      z-index: 9999999;
+    }
+    .flexi-popup-container.active {
+      bottom: 0;
+    }
+  }
+  /* Desktop CSS */
+  @media screen and (min-width: 750px) {
+    .flexi-popup-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      max-width: fit-content;
+      /* max-width: 500px; */
+      max-height: 90vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      transition: display 0.4s ease-in-out;
+      z-index: 9999999;
+      margin: 0 !important;
+      padding: 3rem 2rem;
+    }
+    .flexi-popup-container.active {
+      display: flex;
+    }
+    .flexi-popup-content {
+      max-height: 60vh;
+    }
+  }
+
+  /* Flexi Popup Content CSS */
+  .flexi-popup-content {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .popup-media-column,
+  .popup-content-column {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Mobile: vertical stacking */
+  @media screen and (max-width: 749px) {
+    .flexi-popup-content {
+      display: block;
+    }
+    .popup-media-column,
+    .popup-content-column {
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .popup-product-images {
+      max-width: 100%;
+      margin: 0 auto 1rem auto;
+    }
+  }
+  
+  /* Desktop: two columns, sticky images */
+  @media screen and (min-width: 750px) {
+    .flexi-popup-content {
+      display: flex;
+      flex-direction: row;
+      gap: 2rem;
+      height: 60vh;
+      min-width: 600px;
+      max-width: 900px;
+      box-sizing: border-box;
+    }
+    .popup-media-column,
+    .popup-content-column {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 50%;
+      box-sizing: border-box;
+    }
+    .popup-media-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      /* Sticky/fixed inside popup */
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      max-height: 60vh;
+      overflow: hidden;
+    }
+    .popup-product-images {
+      width: 100%;
+      max-width: 350px;
+      max-height: 60vh;
+      margin: 0 auto;
+    }
+    .popup-content-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow-y: auto;
+      max-height: 60vh;
+      padding-right: 1rem;
+    }
+  }
+
+  /* custom CSS */
+  .popup-product-title {
+    margin: 0.5rem;
+  }
+  .popup-product-price-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .popup-product-price {
+    font-weight: 500;
+    font-size: 18px;
+  }
+  .popup-product-compare-at-price {
+    text-decoration: line-through;
+    color: rgba(33, 35, 38, 0.7);
+  }
+
+</style>  

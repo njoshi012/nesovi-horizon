@@ -1,0 +1,332 @@
+{% liquid
+  assign enabled_count = 0
+  for block in section.blocks
+    if block.settings.enabled != false
+      assign enabled_count = enabled_count | plus: 1
+    endif
+  endfor
+
+  assign show_arrows = true
+  if section.settings.icons_style == 'none' or enabled_count <= 1
+    assign show_arrows = false
+  endif
+
+  assign show_pagination = true
+  if section.settings.pagination_style == 'none' or enabled_count <= 1
+    assign show_pagination = false
+  endif
+
+  assign slideshow_class = ''
+  if enabled_count <= 1
+    assign slideshow_class = 'slideshow--single-media'
+  endif
+
+  case section.settings.desktop_height
+    when 'small'
+      assign slide_size = 'small'
+    when 'large'
+      assign slide_size = 'large'
+    when 'full'
+      assign slide_size = 'large'
+    else
+      assign slide_size = 'medium'
+  endcase
+%}
+
+{% style %}
+  {% if section.settings.desktop_height == 'full' %}
+  @media screen and (min-width: 750px) {
+    .shopify-section-{{ section.id }} slideshow-slides {
+      min-height: 100svh;
+    }
+  }
+  {% endif %}
+
+  {% case section.settings.mobile_height %}
+    {% when 'medium' %}
+  @media screen and (max-width: 749px) {
+    .shopify-section-{{ section.id }} slideshow-slides {
+      min-height: 21.25rem;
+    }
+  }
+    {% when 'large' %}
+  @media screen and (max-width: 749px) {
+    .shopify-section-{{ section.id }} slideshow-slides {
+      min-height: 25rem;
+    }
+  }
+    {% when 'full' %}
+  @media screen and (max-width: 749px) {
+    .shopify-section-{{ section.id }} slideshow-slides {
+      min-height: 100svh;
+    }
+  }
+  {% endcase %}
+{% endstyle %}
+
+{% capture controls %}
+  {%- if show_pagination -%}
+    {%- render 'slideshow-controls',
+      style: section.settings.pagination_style,
+      autoplay: section.settings.autoplay,
+      item_count: enabled_count,
+      show_arrows: false,
+      arrows_on_media: true,
+      controls_on_media: true,
+      pagination_position: 'center',
+      icon_style: section.settings.icons_style
+    -%}
+  {%- endif -%}
+{% endcapture %}
+
+{% capture slides %}
+  {% content_for 'blocks' %}
+{% endcapture %}
+
+<div
+  class="hero-slider-section spacing-style disable-section-top-offset"
+  style="{% render 'spacing-padding', settings: section.settings %}"
+>
+  {%- render 'slideshow',
+    class: slideshow_class,
+    controls: controls,
+    show_arrows: show_arrows,
+    icon_style: section.settings.icons_style,
+    autoplay: section.settings.autoplay,
+    autoplay_speed: section.settings.autoplay_speed,
+    infinite: section.settings.infinite,
+    slides: slides,
+    slide_count: enabled_count,
+    slide_size: slide_size
+  -%}
+</div>
+
+{% stylesheet %}
+  .hero-slider-section {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .hero-slider-section slideshow-component {
+    display: block;
+    width: 100%;
+  }
+
+  .hero-slider-section slideshow-slides {
+    overflow: hidden;
+  }
+
+  .hero-slider-section slideshow-slide {
+    position: relative;
+  }
+  @media screen and (max-width: 749px) {
+    .hero-slider-section slideshow-slides {
+      aspect-ratio: 3 / 4 !important;
+      min-height: unset !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero slider",
+  "tag": "section",
+  "class": "hero-slider-wrapper section-wrapper",
+  "blocks": [
+    {
+      "type": "_hero-slide"
+    }
+  ],
+  "max_blocks": 20,
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Height"
+    },
+    {
+      "type": "select",
+      "id": "desktop_height",
+      "label": "Desktop height",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "full",
+          "label": "Full screen"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "mobile_height",
+      "label": "Mobile height",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "full",
+          "label": "Full screen"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "select",
+      "id": "icons_style",
+      "label": "Navigation arrows",
+      "options": [
+        {
+          "value": "arrow",
+          "label": "Arrows"
+        },
+        {
+          "value": "chevron",
+          "label": "Chevrons"
+        },
+        {
+          "value": "arrows_large",
+          "label": "Large arrows"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "arrows_large"
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "Pagination",
+      "options": [
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "counter",
+          "label": "Counter"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "dots"
+    },
+    {
+      "type": "header",
+      "content": "Autoplay"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Enable autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "Autoplay speed",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 5,
+      "visible_if": "{{ section.settings.autoplay }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "infinite",
+      "label": "Infinite loop",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero slider",
+      "category": "Banners",
+      "blocks": {
+        "slide_1": {
+          "type": "_hero-slide",
+          "settings": {
+            "enabled": true,
+            "heading": "New Arrivals",
+            "subheading": "Shop the latest collection",
+            "primary_button_text": "Shop Now",
+            "primary_button_link": "shopify://collections/all",
+            "text_alignment": "center",
+            "vertical_position": "middle",
+            "content_width": "medium"
+          }
+        },
+        "slide_2": {
+          "type": "_hero-slide",
+          "settings": {
+            "enabled": true,
+            "heading": "Bestsellers",
+            "primary_button_text": "Shop Now",
+            "primary_button_link": "shopify://collections/all",
+            "text_alignment": "center",
+            "vertical_position": "middle",
+            "content_width": "medium"
+          }
+        }
+      },
+      "block_order": ["slide_1", "slide_2"]
+    }
+  ]
+}
+{% endschema %}

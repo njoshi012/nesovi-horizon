@@ -1,0 +1,64 @@
+<footer class="nesovi-footer">
+  <div class="nesovi-foot-grid">
+    <div class="nesovi-foot-brand">
+      {% if section.settings.logo %}
+        <img src="{{ section.settings.logo | image_url: width: 320 }}" alt="{{ shop.name }}" class="nesovi-foot-logo" loading="lazy">
+      {% else %}
+        <span class="nesovi-foot-logotext">{{ shop.name }}</span>
+      {% endif %}
+      <p>{{ section.settings.brand_text }}</p>
+    </div>
+    {% for block in section.blocks %}
+      <div class="nesovi-foot-col" {{ block.shopify_attributes }}>
+        {% assign menu = block.settings.menu %}
+        <h4>{% if block.settings.title != blank %}{{ block.settings.title }}{% else %}{{ menu.title }}{% endif %}</h4>
+        <ul>
+          {% for link in menu.links %}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="nesovi-foot-bottom">
+    <p>© {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.<br>{{ section.settings.tagline }}</p>
+  </div>
+</footer>
+<style>
+.nesovi-footer{background:#f5f5f5;border-top:1px solid #e0e0e0;padding:40px 24px 20px}
+.nesovi-foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px;max-width:1100px;margin:0 auto}
+.nesovi-foot-logo{max-width:140px;height:auto;margin-bottom:12px;display:block}
+.nesovi-foot-logotext{font-size:20px;font-weight:600;letter-spacing:1px;color:#1a1a1a;display:block;margin-bottom:12px}
+.nesovi-foot-brand p{font-size:13px;color:#666;line-height:1.6;margin:0;max-width:260px}
+.nesovi-foot-col h4{font-size:13px;font-weight:600;letter-spacing:.5px;margin:0 0 14px;color:#1a1a1a;text-transform:uppercase}
+.nesovi-foot-col ul{list-style:none;padding:0;margin:0}
+.nesovi-foot-col li{margin-bottom:9px}
+.nesovi-foot-col a{font-size:13px;color:#666;text-decoration:none;transition:color .15s}
+.nesovi-foot-col a:hover{color:#1a1a1a}
+.nesovi-foot-bottom{text-align:center;margin-top:32px;padding-top:18px;border-top:1px solid #e0e0e0}
+.nesovi-foot-bottom p{font-size:12px;color:#999;margin:0;line-height:1.6}
+@media(max-width:900px){.nesovi-foot-grid{grid-template-columns:1fr 1fr}.nesovi-foot-brand{grid-column:1/-1}}
+@media(max-width:480px){.nesovi-foot-grid{grid-template-columns:1fr}}
+</style>
+{% schema %}
+{
+  "name": "NESOVI Footer",
+  "max_blocks": 3,
+  "settings": [
+    {"type": "image_picker", "id": "logo", "label": "Logo"},
+    {"type": "textarea", "id": "brand_text", "label": "Brand description", "default": "True anti-tarnish jewelry, tried & tested. Premium quality pieces crafted for everyday wear — backed by 1000+ happy customers across India."},
+    {"type": "text", "id": "tagline", "label": "Bottom tagline", "default": "True anti-tarnish jewelry, tried & tested."}
+  ],
+  "blocks": [
+    {
+      "type": "menu_column",
+      "name": "Menu Column",
+      "settings": [
+        {"type": "text", "id": "title", "label": "Column title (optional — uses menu name if empty)"},
+        {"type": "link_list", "id": "menu", "label": "Navigation menu", "default": "footer"}
+      ]
+    }
+  ],
+  "presets": [{"name": "NESOVI Footer", "blocks": [{"type": "menu_column"}, {"type": "menu_column"}, {"type": "menu_column"}]}]
+}
+{% endschema %}

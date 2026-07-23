@@ -1,0 +1,46 @@
+<section class="nesovi-rel" data-pid="{{ product.id }}" data-limit="{{ section.settings.limit }}">
+  <h2>{{ section.settings.heading }}</h2>
+  <p class="nesovi-rel-sub">{{ section.settings.subheading }}</p>
+  <div class="nesovi-rel-grid"></div>
+</section>
+{% stylesheet %}
+.nesovi-rel{padding:40px 24px;background:#fff8e1;text-align:center}
+.nesovi-rel h2{font-size:24px;font-weight:600;text-transform:capitalize;margin:0 0 6px;color:#1a1a1a}
+.nesovi-rel-sub{font-size:13px;color:#666;margin:0 0 24px}
+.nesovi-rel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1000px;margin:0 auto}
+.nesovi-rel-card{background:#fff;border:1px solid #ffe082;border-radius:10px;overflow:hidden;text-decoration:none;color:inherit;transition:box-shadow .15s}
+.nesovi-rel-card:hover{box-shadow:0 4px 14px rgba(255,193,7,.25)}
+.nesovi-rel-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.nesovi-rel-card h3{font-size:12px;font-weight:500;margin:10px 10px 4px;color:#1a1a1a;text-align:left}
+.nesovi-rel-card p{font-size:12px;color:#666;margin:0 10px 10px;text-align:left}
+@media(max-width:768px){.nesovi-rel-grid{grid-template-columns:repeat(2,1fr)}}
+{% endstylesheet %}
+{% javascript %}
+(function(){
+  document.querySelectorAll('.nesovi-rel').forEach(function(sec){
+    if(sec.dataset.nesoviInit)return;sec.dataset.nesoviInit='1';
+    var g=sec.querySelector('.nesovi-rel-grid'),pid=sec.dataset.pid,limit=sec.dataset.limit;
+    if(!pid)return;
+    fetch('/recommendations/products.json?product_id='+pid+'&limit='+limit)
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if(!d.products||!d.products.length){sec.style.display='none';return;}
+        g.innerHTML=d.products.map(function(p){
+          var img=p.featured_image?p.featured_image.replace(/(\.[a-z]+)(\?|$)/,'_480x$1$2'):'';
+          return '<a href="'+p.url+'" class="nesovi-rel-card"><img src="'+img+'" alt="" loading="lazy"><h3>'+p.title+'</h3><p>\u20b9'+(p.price/100).toFixed(0)+'</p></a>';
+        }).join('');
+      }).catch(function(){sec.style.display='none';});
+  });
+})();
+{% endjavascript %}
+{% schema %}
+{
+  "name": "NESOVI Complete Look",
+  "settings": [
+    {"type": "text", "id": "heading", "label": "Heading", "default": "✨ Complete Your Look"},
+    {"type": "text", "id": "subheading", "label": "Subheading", "default": "Customers who bought this also loved these pieces."},
+    {"type": "range", "id": "limit", "label": "Products", "min": 2, "max": 8, "step": 1, "default": 4}
+  ],
+  "presets": [{"name": "NESOVI Complete Look"}]
+}
+{% endschema %}

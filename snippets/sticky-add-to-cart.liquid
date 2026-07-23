@@ -1,0 +1,108 @@
+{%- doc -%}
+  Renders a fixed bottom bar (mobile only) that mirrors the product's price and Add to cart
+  button, shown once the real Add to cart button scrolls out of view.
+
+  @param {product} product - The product to render the price/add to cart state for.
+
+  @example
+  {% render 'sticky-add-to-cart', product: closest.product %}
+{%- enddoc -%}
+
+{%- if product != blank -%}
+  <script src="{{ 'sticky-add-to-cart.js' | asset_url }}" type="module"></script>
+
+  <sticky-add-to-cart-bar class="sticky-add-to-cart-bar">
+    <div class="sticky-add-to-cart-bar__price">
+      {% render 'price', product_resource: product, show_sale_price_first: true %}
+    </div>
+    <button type="button" class="button sticky-add-to-cart-bar__button" ref="button" on:click="/handleClick">
+      {{ 'actions.add_to_cart' | t }}
+    </button>
+  </sticky-add-to-cart-bar>
+{%- endif -%}
+
+{% stylesheet %}
+  .sticky-add-to-cart-bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: var(--layer-sticky, 10);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-sm, 0.7rem);
+    padding: var(--padding-sm, 0.7rem) var(--padding-sm, 0.7rem);
+    background: var(--color-background);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -2px 8px rgb(0 0 0 / 0.08);
+    transform: translateY(100%);
+    transition: transform var(--animation-speed, 0.2s) var(--animation-easing, ease);
+  }
+
+  .sticky-add-to-cart-bar[data-visible] {
+    transform: translateY(0);
+  }
+
+  .sticky-add-to-cart-bar__price {
+    flex-shrink: 0;
+  }
+
+  /* Stack sale price and strike price on separate lines */
+  .sticky-add-to-cart-bar__price > * {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .sticky-add-to-cart-bar__price .price {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .sticky-add-to-cart-bar__price .compare-at-price {
+    font-size: 15px;
+    font-weight: 400;
+    color: #777;
+    text-decoration: line-through;
+  }
+
+  /* Add to cart — solid black, vertically + horizontally centred (matches .nesovi-atc) */
+  .sticky-add-to-cart-bar__button {
+    flex: 1;
+    max-width: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    min-height: 0;
+    padding-block: 0;
+    padding-inline: 16px;
+    background: #111;
+    color: #fff;
+    border: 1px solid #111;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .sticky-add-to-cart-bar__button:hover {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+  }
+
+  @media screen and (min-width: 750px) {
+    .sticky-add-to-cart-bar {
+      display: none !important;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .sticky-add-to-cart-bar {
+      display: flex;
+    }
+  }
+{% endstylesheet %}

@@ -1,0 +1,371 @@
+{% doc %}
+  @prompt
+    Create a popup modal that appears automatically when the website loads. The popup should display an image that is clickable and redirects to a specific product URL when clicked. Include a close icon (X button) positioned in the top right corner of the popup. The popup should have a semi-transparent overlay background and be centered on the screen. The close button should dismiss the popup when clicked. Make the popup customizable so the merchant can upload their own image and edit the redirect URL., Do not show this popup on this product template 
+    make-your-own-bundle
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% if template.suffix == 'make-your-own-bundle' %}
+  {% assign hide_popup = true %}
+{% else %}
+  {% assign hide_popup = false %}
+{% endif %}
+
+{% unless hide_popup %}
+  {% style %}
+    .ai-popup-modal-{{ ai_gen_id }} {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .ai-popup-modal-{{ ai_gen_id }}.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .ai-popup-overlay-{{ ai_gen_id }} {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: {{ block.settings.overlay_color }};
+      opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+    }
+
+    .ai-popup-container-{{ ai_gen_id }} {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90%;
+      max-height: 60vh;
+      z-index: 10000;
+    }
+
+    .ai-popup-content-{{ ai_gen_id }} {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .ai-popup-image-link-{{ ai_gen_id }} {
+      display: block;
+      cursor: pointer;
+      border-radius: {{ block.settings.border_radius }}px;
+      overflow: hidden;
+    }
+
+    .ai-popup-image-{{ ai_gen_id }} {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: {{ block.settings.max_width }}px;
+      border-radius: {{ block.settings.border_radius }}px;
+    }
+
+    .ai-popup-placeholder-{{ ai_gen_id }} {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: {{ block.settings.max_width }}px;
+      max-width: 90vw;
+      height: 400px;
+      background-color: #f4f4f4;
+      border-radius: {{ block.settings.border_radius }}px;
+    }
+
+    .ai-popup-placeholder-{{ ai_gen_id }} svg {
+      width: 100%;
+      height: 100%;
+      max-width: 300px;
+      max-height: 300px;
+    }
+
+    .ai-popup-close-{{ ai_gen_id }} {
+      position: absolute;
+      top: {{ block.settings.close_button_offset }}px;
+      right: {{ block.settings.close_button_offset }}px;
+      width: {{ block.settings.close_button_size }}px;
+      height: {{ block.settings.close_button_size }}px;
+      background-color: {{ block.settings.close_button_bg }};
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .ai-popup-close-{{ ai_gen_id }}:hover {
+      background-color: {{ block.settings.close_button_hover_bg }};
+      transform: scale(1.1);
+    }
+
+    .ai-popup-close-icon-{{ ai_gen_id }} {
+      width: calc({{ block.settings.close_button_size }}px * 0.5);
+      height: calc({{ block.settings.close_button_size }}px * 0.5);
+      stroke: {{ block.settings.close_button_color }};
+      stroke-width: 2;
+    }
+
+    @media screen and (max-width: 749px) {
+
+      .ai-popup-container-{{ ai_gen_id }} {
+        width: 90vw;
+        max-width: 90vw;
+        max-height: 85vh; /* increase height */
+        padding: 0;
+      }
+
+      .ai-popup-content-{{ ai_gen_id }} {
+        width: 100%;
+      }
+
+      .ai-popup-image-{{ ai_gen_id }} {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 85vh; /* allow taller popup */
+        object-fit: contain;
+      }
+
+      .ai-popup-image-link-{{ ai_gen_id }} {
+        width: 100%;
+      }
+
+      .ai-popup-close-{{ ai_gen_id }} {
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+  {% endstyle %}
+
+  <popup-modal-{{ ai_gen_id }} class="ai-popup-modal-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+    <div class="ai-popup-overlay-{{ ai_gen_id }}"></div>
+    <div class="ai-popup-container-{{ ai_gen_id }}">
+      <div class="ai-popup-content-{{ ai_gen_id }}">
+        {% if block.settings.popup_image %}
+          <a href="{{ block.settings.redirect_url }}" class="ai-popup-image-link-{{ ai_gen_id }}">
+            <img
+              src="{{ block.settings.popup_image | image_url: width: 2000 }}"
+              alt="{{ block.settings.popup_image.alt | escape }}"
+              loading="eager"
+              width="{{ block.settings.popup_image.width }}"
+              height="{{ block.settings.popup_image.height }}"
+              class="ai-popup-image-{{ ai_gen_id }}"
+            >
+          </a>
+        {% else %}
+          <div class="ai-popup-placeholder-{{ ai_gen_id }}">
+            {{ 'image' | placeholder_svg_tag }}
+          </div>
+        {% endif %}
+        <button class="ai-popup-close-{{ ai_gen_id }}" aria-label="Close popup">
+          <svg class="ai-popup-close-icon-{{ ai_gen_id }}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </popup-modal-{{ ai_gen_id }}>
+
+  <script>
+    (function() {
+      class PopupModal{{ ai_gen_id }} extends HTMLElement {
+        constructor() {
+          super();
+          this.closeButton = this.querySelector('.ai-popup-close-{{ ai_gen_id }}');
+          this.overlay = this.querySelector('.ai-popup-overlay-{{ ai_gen_id }}');
+          this.delay = {{ block.settings.delay_seconds }} * 1000;
+        }
+
+        connectedCallback() {
+          this.setupEventListeners();
+          this.showPopup();
+        }
+
+        setupEventListeners() {
+          this.closeButton.addEventListener('click', () => {
+            this.hidePopup();
+          });
+
+          this.overlay.addEventListener('click', () => {
+            if ({{ block.settings.close_on_overlay }}) {
+              this.hidePopup();
+            }
+          });
+
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && this.classList.contains('active')) {
+              this.hidePopup();
+            }
+          });
+        }
+
+        showPopup() {
+          // 👇 STOP if already shown this session
+          if (sessionStorage.getItem('popupShown_{{ ai_gen_id }}') === 'true') return;
+
+          setTimeout(() => {
+            this.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // 👇 Mark popup as shown for this session
+            sessionStorage.setItem('popupShown_{{ ai_gen_id }}', 'true');
+          }, this.delay);
+        }
+
+        hidePopup() {
+          this.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      }
+
+      customElements.define('popup-modal-{{ ai_gen_id }}', PopupModal{{ ai_gen_id }});
+    })();
+  </script>
+{% endunless %}
+
+{% schema %}
+{
+  "name": "Popup modal",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "popup_image",
+      "label": "Popup image"
+    },
+    {
+      "type": "url",
+      "id": "redirect_url",
+      "label": "Redirect URL"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 300,
+      "max": 1000,
+      "step": 50,
+      "unit": "px",
+      "label": "Maximum width",
+      "default": 600
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Behavior"
+    },
+    {
+      "type": "range",
+      "id": "delay_seconds",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Delay before showing",
+      "default": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "close_on_overlay",
+      "label": "Close when clicking overlay",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay opacity",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Close button"
+    },
+    {
+      "type": "range",
+      "id": "close_button_size",
+      "min": 24,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Size",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "close_button_offset",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "Offset from edge",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "close_button_bg",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "close_button_hover_bg",
+      "label": "Hover background color",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "close_button_color",
+      "label": "Icon color",
+      "default": "#000000"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Popup modal"
+    }
+  ]
+}
+{% endschema %}

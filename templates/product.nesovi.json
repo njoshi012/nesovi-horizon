@@ -1,0 +1,12 @@
+{
+  "sections": {
+    "main": { "type": "nesovi-product-main", "settings": {} },
+    "guarantee": { "type": "nesovi-guarantee-banner", "settings": {} },
+    "specs": { "type": "nesovi-specs", "settings": {} },
+    "fbt": { "type": "nesovi-fbt", "settings": {} },
+    "description": { "type": "nesovi-description", "settings": {} },
+    "crosssell": { "type": "nesovi-crosssell", "settings": {} },
+    "related": { "type": "nesovi-related", "settings": {} }
+  },
+  "order": ["main", "guarantee", "specs", "fbt", "description", "crosssell", "related"]
+}

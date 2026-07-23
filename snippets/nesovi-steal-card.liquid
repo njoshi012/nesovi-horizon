@@ -1,0 +1,18 @@
+{% comment %} expects p (product) {% endcomment %}
+{% assign v = p.selected_or_first_available_variant %}
+{% assign save_pct = 0 %}
+{% if v.compare_at_price > v.price %}
+  {% assign diff = v.compare_at_price | minus: v.price %}
+  {% assign save_pct = diff | times: 100 | divided_by: v.compare_at_price %}
+{% endif %}
+<div class="nesovi-steal-card">
+  <a href="{{ p.url }}" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;flex:1">
+    {% if save_pct > 0 %}<span class="nesovi-steal-badge">Save {{ save_pct }}%</span>{% endif %}
+    {% if p.featured_image %}<img src="{{ p.featured_image | image_url: width: 240 }}" alt="{{ p.title | escape }}" loading="lazy">{% endif %}
+    <div class="nsc-info">
+      <h5>{{ p.title }}</h5>
+      <p class="nsc-price">{{ v.price | money }}{% if v.compare_at_price > v.price %}<s>{{ v.compare_at_price | money }}</s>{% endif %}</p>
+    </div>
+  </a>
+  <button type="button" class="nesovi-steal-grab" data-vid="{{ v.id }}">Grab Now</button>
+</div>

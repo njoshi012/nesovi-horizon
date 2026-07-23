@@ -1,0 +1,233 @@
+<div class="section real-people-real-story" id="reels-section-{{ section.id }}">
+
+  {%- if section.settings.heading != blank or section.settings.text != blank -%}
+    <div class="reels-header">
+      {%- if section.settings.heading != blank -%}
+        <h3>{{ section.settings.heading }}</h3>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <p>{{ section.settings.text }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div class="reels-wrapper">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign reel_link = block.settings.page_link
+        if reel_link == blank and block.settings.product != blank
+          assign reel_link = block.settings.product.url
+        endif
+      -%}
+      <div class="reel-card" {{ block.shopify_attributes }}>
+        <div class="reel-video-container">
+          <video
+            muted
+            loop
+            playsinline
+            preload="none"
+            data-src="{{ block.settings.video_url }}"
+            class="reel-video"
+          ></video>
+          <div class="reel-play-indicator" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="20" fill="rgba(0,0,0,0.35)"/>
+              <polygon points="16,13 30,20 16,27" fill="#fff"/>
+            </svg>
+          </div>
+        </div>
+        {%- if reel_link != blank -%}
+          <div class="reel-content">
+            <a class="reel-btn" href="{{ reel_link }}">View Product</a>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  </div>
+
+</div>
+
+<style>
+  .section.real-people-real-story {
+    padding-top: 40px;
+    padding-bottom: 20px;
+  }
+  .reels-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .reels-header p {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .reels-wrapper {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #ff7b7b transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  .reels-wrapper::-webkit-scrollbar { height: 6px; }
+  .reels-wrapper::-webkit-scrollbar-track { background: transparent; }
+  .reels-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #ff7b7b, #ffb178, #ffd36b, #a5ff8a);
+    border-radius: 10px;
+  }
+  @media (min-width: 768px) {
+    .reels-wrapper { justify-content: center; }
+  }
+  .reel-card {
+    min-width: 200px;
+    max-width: 200px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    background: #111;
+    flex-shrink: 0;
+  }
+  .reel-video-container {
+    position: relative;
+    width: 100%;
+    height: 355px;
+    background: #111;
+    overflow: hidden;
+  }
+  .reel-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .reel-play-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .reel-card.reel-loaded .reel-play-indicator {
+    opacity: 0;
+  }
+  .reel-content {
+    padding: 10px;
+    text-align: center;
+    background: #fff;
+  }
+  .reel-btn {
+    display: inline-block;
+    background: #000;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .reel-btn:hover { opacity: 0.82; }
+</style>
+
+<script>
+(function () {
+  var sectionEl = document.getElementById('reels-section-{{ section.id }}');
+  if (!sectionEl) return;
+
+  var reelsLoaded = false;
+
+  function loadReels() {
+    if (reelsLoaded) return;
+    reelsLoaded = true;
+
+    var videos = sectionEl.querySelectorAll('video[data-src]');
+    videos.forEach(function (video) {
+      var src = video.getAttribute('data-src');
+      if (!src) return;
+
+      var source = document.createElement('source');
+      source.src = src;
+      source.type = 'video/mp4';
+      video.appendChild(source);
+      video.removeAttribute('data-src');
+      video.load();
+
+      video.addEventListener('canplay', function () {
+        video.play().catch(function () {});
+        video.closest('.reel-card').classList.add('reel-loaded');
+      }, { once: true });
+    });
+  }
+
+  function setupObserver() {
+    if (!('IntersectionObserver' in window)) {
+      loadReels();
+      return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          loadReels();
+        }
+      });
+    }, { rootMargin: '300px 0px', threshold: 0 });
+
+    observer.observe(sectionEl);
+  }
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(setupObserver, { timeout: 3000 });
+  } else {
+    setTimeout(setupObserver, 500);
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Insta Reels",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Short description"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "reel",
+      "name": "Reel Video",
+      "settings": [
+        {
+          "type": "text",
+          "id": "video_url",
+          "label": "Video URL (MP4)"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Select Product"
+        },
+        {
+          "type": "url",
+          "id": "page_link",
+          "label": "Custom link (optional)",
+          "info": "Overrides the product link if set."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Insta Reels"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,165 @@
+
+
+{%- assign block_settings = block.settings -%}
+
+<div class="pdp-shipping-info spacing-style" style="{% render 'spacing-style', settings: block_settings %}" {{ block.shopify_attributes }}>
+  {%- for i in (1..4) -%}
+    {%- liquid
+      case i
+        when 1
+          assign item_icon = 'truck'
+          assign item_text = block_settings.text_1
+        when 2
+          assign item_icon = 'clock'
+          assign item_text = block_settings.text_2
+        when 3
+          assign item_icon = 'pin'
+          assign item_text = block_settings.text_3
+        when 4
+          assign item_icon = 'cod'
+          assign item_text = block_settings.text_4
+      endcase
+    -%}
+    {%- if item_text != blank -%}
+      <div class="pdp-shipping-info__item">
+        <svg class="pdp-shipping-info__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          {%- case item_icon -%}
+            {%- when 'truck' -%}
+              <rect x="1.5" y="7" width="13" height="9" rx="1" />
+              <path d="M14.5 10h4l3 3.2V16h-7Z" />
+              <circle cx="6.3" cy="18" r="1.6" />
+              <circle cx="17.3" cy="18" r="1.6" />
+            {%- when 'clock' -%}
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3.2 2.2" />
+            {%- when 'pin' -%}
+              <path d="M12 21s7-6.8 7-12.5A7 7 0 0 0 5 8.5C5 14.2 12 21 12 21Z" />
+              <circle cx="12" cy="8.5" r="2.4" />
+            {%- when 'cod' -%}
+              <rect x="2" y="6" width="20" height="12" rx="2" />
+              <circle cx="12" cy="12" r="2.6" />
+              <path d="M5.5 9h.01M18.5 15h.01" />
+          {%- endcase -%}
+        </svg>
+        <span class="pdp-shipping-info__text">{{ item_text }}</span>
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+</div>
+
+{% stylesheet %}
+  .pdp-shipping-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--color-border);
+    border-radius: var(--style-border-radius-md, 0.8rem);
+    background: #eee2de;
+    overflow: hidden;
+  }
+
+  .pdp-shipping-info__item {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-xs, 0.5rem);
+    padding: var(--padding-sm, 0.7rem);
+  }
+
+  .pdp-shipping-info__item:nth-child(1),
+  .pdp-shipping-info__item:nth-child(2) {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .pdp-shipping-info__icon {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-primary);
+  }
+
+  .pdp-shipping-info__text {
+    font-size: var(--font-size--xs, 0.8125rem);
+    color: var(--color-foreground);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "PDP shipping info",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "text_1",
+      "label": "Item 1 text (truck icon)",
+      "default": "Free Shipping above ₹499"
+    },
+    {
+      "type": "text",
+      "id": "text_2",
+      "label": "Item 2 text (clock icon)",
+      "default": "Ships in 24 Hours"
+    },
+    {
+      "type": "text",
+      "id": "text_3",
+      "label": "Item 3 text (pin icon)",
+      "default": "Delivery in 2-5 Days"
+    },
+    {
+      "type": "text",
+      "id": "text_4",
+      "label": "Item 4 text (COD icon)",
+      "default": "COD Available"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "PDP shipping info"
+    }
+  ]
+}
+{% endschema %}

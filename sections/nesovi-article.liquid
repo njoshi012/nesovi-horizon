@@ -1,0 +1,42 @@
+<article class="nesovi-article">
+  {% if article.image %}<div class="nesovi-art-hero"><img src="{{ article.image | image_url: width: 1200 }}" alt="{{ article.title | escape }}"></div>{% endif %}
+  <header>
+    {% if article.tags.size > 0 %}<span class="nesovi-art-cat">{{ article.tags.first }}</span>{% endif %}
+    <h1>{{ article.title }}</h1>
+    <div class="nesovi-art-meta">By {{ article.author }} · {{ article.published_at | date: '%b %d, %Y' }}</div>
+  </header>
+  <div class="nesovi-art-body">{{ article.content }}</div>
+  <div class="nesovi-art-cta">
+    <p><strong>{{ section.settings.cta_text }}</strong></p>
+    <a href="{{ section.settings.cta_link | default: '/collections/all' }}">{{ section.settings.cta_label }}</a>
+  </div>
+  <div class="nesovi-art-back"><a href="{{ blog.url }}">← Back to all stories</a></div>
+</article>
+<style>
+.nesovi-article{max-width:720px;margin:0 auto;padding:40px 24px}
+.nesovi-art-hero{border-radius:12px;overflow:hidden;margin-bottom:28px;aspect-ratio:16/9;background:#f5f5f5}
+.nesovi-art-hero img{width:100%;height:100%;object-fit:cover}
+.nesovi-art-cat{font-size:12px;color:#5b6ef5;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.nesovi-article h1{font-size:30px;font-weight:500;margin:10px 0 12px;line-height:1.3;color:#1a1a1a}
+.nesovi-art-meta{font-size:13px;color:#999;margin-bottom:28px}
+.nesovi-art-body{font-size:15px;color:#444;line-height:1.8}
+.nesovi-art-body h2,.nesovi-art-body h3{font-size:19px;font-weight:500;margin:28px 0 12px;color:#1a1a1a}
+.nesovi-art-body p{margin:0 0 16px}
+.nesovi-art-body blockquote{background:#f9f7ff;border-left:4px solid #5b6ef5;border-radius:4px;padding:16px 20px;margin:20px 0;font-style:italic;color:#333}
+.nesovi-art-body img{max-width:100%;border-radius:8px}
+.nesovi-art-cta{background:#fff8e1;border:1px solid #ffe082;border-radius:12px;padding:24px;text-align:center;margin:36px 0 20px}
+.nesovi-art-cta p{font-size:14px;margin:0 0 14px;color:#1a1a1a}
+.nesovi-art-cta a{display:inline-block;padding:11px 26px;background:#5b6ef5;color:#fff;border-radius:8px;text-decoration:none;font-weight:500;font-size:14px}
+.nesovi-art-back{margin-top:20px}
+.nesovi-art-back a{font-size:13px;color:#5b6ef5;text-decoration:none}
+</style>
+{% schema %}
+{
+  "name": "NESOVI Article",
+  "settings": [
+    {"type": "text", "id": "cta_text", "label": "CTA text", "default": "Ready to experience true anti-tarnish jewelry?"},
+    {"type": "text", "id": "cta_label", "label": "CTA button", "default": "Shop Now"},
+    {"type": "url", "id": "cta_link", "label": "CTA link"}
+  ]
+}
+{% endschema %}

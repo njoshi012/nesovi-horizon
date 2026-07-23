@@ -1,0 +1,68 @@
+<div class="nesovi-cu" id="nesoviCu-{{ block.id }}" data-limit="{{ block.settings.limit }}" {{ block.shopify_attributes }}>
+  <h4 class="nesovi-cu-title">{{ block.settings.heading }}</h4>
+  <div class="nesovi-cu-items"></div>
+</div>
+{% stylesheet %}
+.nesovi-cu{background:#f9f7ff;border-radius:10px;padding:14px;margin:12px 0}
+.nesovi-cu[hidden]{display:none}
+.nesovi-cu-title{font-size:13px;font-weight:500;margin:0 0 10px;color:#1a1a1a}
+.nesovi-cu-item{display:flex;align-items:center;gap:10px;background:#fff;border-radius:8px;padding:8px;margin-bottom:8px}
+.nesovi-cu-item:last-child{margin-bottom:0}
+.nesovi-cu-item img{width:42px;height:42px;border-radius:6px;object-fit:cover;background:#f5f5f5}
+.nesovi-cu-info{flex:1;min-width:0}
+.nesovi-cu-info h6{font-size:11px;font-weight:500;margin:0;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nesovi-cu-info p{font-size:11px;color:#666;margin:2px 0 0}
+.nesovi-cu-add{background:#5b6ef5;color:#fff;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;flex-shrink:0}
+.nesovi-cu-add:disabled{background:#9aa4f7;cursor:default}
+{% endstylesheet %}
+{% javascript %}
+(function(){
+  function init(el){
+    if(!el||el.dataset.nesoviInit)return;el.dataset.nesoviInit='1';
+    var wrap=el.querySelector('.nesovi-cu-items'),limit=parseInt(el.dataset.limit)||2;
+    function load(){
+      fetch('/cart.js').then(function(r){return r.json()}).then(function(c){
+        if(!c.items.length){el.hidden=true;return;}
+        var inCart=c.items.map(function(i){return i.product_id});
+        fetch('/recommendations/products.json?product_id='+c.items[0].product_id+'&limit=6').then(function(r){return r.json()}).then(function(d){
+          var recs=(d.products||[]).filter(function(p){return inCart.indexOf(p.id)<0}).slice(0,limit);
+          if(!recs.length){el.hidden=true;return;}
+          el.hidden=false;
+          wrap.innerHTML=recs.map(function(p){
+            var v=p.variants&&p.variants[0]?p.variants[0].id:'';
+            return '<div class="nesovi-cu-item"><img src="'+(p.featured_image||'')+'" alt="" loading="lazy"><div class="nesovi-cu-info"><h6>'+p.title+'</h6><p>\u20b9'+(p.price/100).toFixed(0)+'</p></div><button type="button" class="nesovi-cu-add" data-v="'+v+'">+ Add</button></div>';
+          }).join('');
+          wrap.querySelectorAll('.nesovi-cu-add').forEach(function(b){
+            b.addEventListener('click',function(){
+              b.disabled=true;b.textContent='Adding\u2026';
+              fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:parseInt(b.dataset.v),quantity:1})})
+                .then(function(r){return r.json()})
+                .then(function(){
+                  b.textContent='Added \u2713';
+                  return fetch('/cart.js').then(function(r){return r.json()}).then(function(cart){
+                    document.dispatchEvent(new CustomEvent('cart:update',{bubbles:true,detail:{resource:cart,data:{source:'nesovi-upsell'}}}));
+                    setTimeout(load,600);
+                  });
+                });
+            });
+          });
+        }).catch(function(){el.hidden=true});
+      });
+    }
+    load();
+    document.addEventListener('cart:update',function(e){if(!e.detail||!e.detail.data||e.detail.data.source!=='nesovi-upsell')load();});
+  }
+  document.querySelectorAll('[id^="nesoviCu-"]').forEach(init);
+  new MutationObserver(function(){document.querySelectorAll('[id^="nesoviCu-"]').forEach(init);}).observe(document.body,{childList:true,subtree:true});
+})();
+{% endjavascript %}
+{% schema %}
+{
+  "name": "NESOVI Cart Upsell",
+  "settings": [
+    {"type": "text", "id": "heading", "label": "Heading", "default": "🎁 Complete Your Look"},
+    {"type": "range", "id": "limit", "label": "Products to show", "min": 1, "max": 4, "step": 1, "default": 2}
+  ],
+  "presets": [{"name": "NESOVI Cart Upsell"}]
+}
+{% endschema %}

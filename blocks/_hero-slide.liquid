@@ -1,0 +1,289 @@
+{% liquid
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign section_index = section.index
+  assign is_enabled = block.settings.enabled
+  assign desktop_image = block.settings.desktop_image
+  assign mobile_image = block.settings.mobile_image
+  assign fetchpriority = 'low'
+  if block_index == 0 and section_index == 1
+    assign fetchpriority = 'high'
+  endif
+  assign img_loading = 'lazy'
+  if block_index == 0 and section_index <= 3
+    assign img_loading = 'eager'
+  endif
+  assign img_widths = '400, 600, 800, 1000, 1200, 1600, 1920, 2560'
+  assign img_sizes = '(min-width: 750px) 100vw, 100vw'
+  assign has_content = false
+  if block.settings.eyebrow != blank or block.settings.heading != blank or block.settings.subheading != blank or block.settings.description != blank or block.settings.primary_button_text != blank or block.settings.secondary_button_text != blank
+    assign has_content = true
+  endif
+%}
+
+{% assign enabled_index = nil %}
+{% assign enabled_counter = 0 %}
+{% for b in section.blocks %}
+  {% unless b.settings.enabled == false %}
+    {% if b.id == block.id %}{% assign enabled_index = enabled_counter %}{% endif %}
+    {% assign enabled_counter = enabled_counter | plus: 1 %}
+  {% endunless %}
+{% endfor %}
+
+{% capture slide_children %}
+  <div class="hero-slide__media" {{ block.shopify_attributes }}>
+    {%- if is_enabled -%}
+      {%- if desktop_image or mobile_image -%}
+        <picture class="hero-slide__picture">
+          {%- if mobile_image -%}
+            <source media="(max-width: 749px)" srcset="{{ mobile_image | image_url: width: 400 }} 400w, {{ mobile_image | image_url: width: 600 }} 600w, {{ mobile_image | image_url: width: 800 }} 800w" sizes="100vw">
+          {%- elsif desktop_image -%}
+            <source media="(max-width: 749px)" srcset="{{ desktop_image | image_url: width: 400 }} 400w, {{ desktop_image | image_url: width: 600 }} 600w, {{ desktop_image | image_url: width: 800 }} 800w" sizes="100vw">
+          {%- endif -%}
+          {%- if desktop_image -%}
+            {{ desktop_image | image_url: width: 2560 | image_tag: class: 'hero-slide__image', widths: img_widths, sizes: img_sizes, loading: img_loading, fetchpriority: fetchpriority, alt: desktop_image.alt }}
+          {%- elsif mobile_image -%}
+            {{ mobile_image | image_url: width: 2560 | image_tag: class: 'hero-slide__image', widths: img_widths, sizes: '100vw', loading: img_loading, fetchpriority: fetchpriority, alt: mobile_image.alt }}
+          {%- endif -%}
+        </picture>
+      {%- else -%}
+        {%- assign placeholder_num = block_index | modulo: 2 | plus: 1 -%}
+        {{ 'hero-apparel-' | append: placeholder_num | placeholder_svg_tag: 'hero-slide__image hero-slide__image--placeholder' }}
+      {%- endif -%}
+      {%- if block.settings.overlay_enable -%}
+        {%- assign overlay_alpha = block.settings.overlay_opacity | divided_by: 100.0 -%}
+        <div class="hero-slide__overlay" style="background-color: {{ block.settings.overlay_color | color_modify: 'alpha', overlay_alpha }};" aria-hidden="true"></div>
+      {%- endif -%}
+      {%- if block.settings.slide_link != blank -%}
+        <a
+          href="{{ block.settings.slide_link }}"
+          class="hero-slide__link"
+          aria-label="{{ block.settings.heading | default: block.settings.eyebrow | default: 'View slide' | escape }}"
+        ></a>
+      {%- endif -%}
+      {%- if has_content -%}
+        <div
+          class="hero-slide__content hero-slide__content--{{ block.settings.text_alignment }} hero-slide__content--{{ block.settings.vertical_position }} hero-slide__content--{{ block.settings.content_width }}{% if block.settings.slide_link != blank %} hero-slide__content--linked{% endif %}{% if block.settings.text_shadow %} hero-slide__content--shadow{% endif %}"
+          style="--slide-heading-color: {{ block.settings.heading_color }}; --slide-desc-color: {{ block.settings.description_color }}; --slide-btn-text: {{ block.settings.button_text_color }}; --slide-btn-bg: {{ block.settings.button_bg_color }};"
+        >
+          {%- if block.settings.eyebrow != blank -%}<p class="hero-slide__eyebrow">{{ block.settings.eyebrow | escape }}</p>{%- endif -%}
+          {%- if block.settings.heading != blank -%}<h2 class="hero-slide__heading">{{ block.settings.heading | escape }}</h2>{%- endif -%}
+          {%- if block.settings.subheading != blank -%}<p class="hero-slide__subheading">{{ block.settings.subheading | escape }}</p>{%- endif -%}
+          {%- if block.settings.description != blank -%}<p class="hero-slide__description">{{ block.settings.description | escape }}</p>{%- endif -%}
+          {%- if block.settings.primary_button_text != blank or block.settings.secondary_button_text != blank -%}
+            <div class="hero-slide__buttons">
+              {%- if block.settings.primary_button_text != blank -%}
+                <a href="{{ block.settings.primary_button_link | default: '#' }}" class="hero-slide__btn hero-slide__btn--primary">{{ block.settings.primary_button_text | escape }}</a>
+              {%- endif -%}
+              {%- if block.settings.secondary_button_text != blank -%}
+                <a href="{{ block.settings.secondary_button_link | default: '#' }}" class="hero-slide__btn hero-slide__btn--secondary">{{ block.settings.secondary_button_text | escape }}</a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+{% endcapture %}
+
+<slideshow-slide
+  ref="slides[]"
+  aria-hidden="{% if enabled_index == 0 %}false{% else %}true{% endif %}"
+  style="view-timeline-name: --slide-{{ block_index }}; --product-media-fit: cover;"
+  {% if block.settings.enabled == false %}hidden{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {{ slide_children }}
+</slideshow-slide>
+
+{% stylesheet %}
+  .hero-slide__media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .hero-slide__picture {
+    display: contents;
+  }
+  .hero-slide__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    position: relative;
+  }
+  .hero-slide__image--placeholder {
+    opacity: 0.4;
+    width: 100%;
+    height: 100%;
+  }
+  .hero-slide__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .hero-slide__content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  .hero-slide__content > * { pointer-events: auto; }
+  .hero-slide__link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    text-indent: -9999px;
+    overflow: hidden;
+  }
+  /* When the whole slide is a link, let clicks over text fall through to it,
+     while keeping the buttons individually clickable. */
+  .hero-slide__content--linked > :not(.hero-slide__buttons) { pointer-events: none; }
+  .hero-slide__content--left { align-items: flex-start; text-align: left; }
+  .hero-slide__content--center { align-items: center; text-align: center; }
+  .hero-slide__content--right { align-items: flex-end; text-align: right; }
+  .hero-slide__content--top { justify-content: flex-start; padding-block-start: 40px; }
+  .hero-slide__content--middle { justify-content: center; }
+  .hero-slide__content--bottom { justify-content: flex-end; padding-block-end: 40px; }
+  .hero-slide__content--small > :not(.hero-slide__buttons) { max-width: min(400px, 90%); }
+  .hero-slide__content--medium > :not(.hero-slide__buttons) { max-width: min(640px, 90%); }
+  .hero-slide__content--large > :not(.hero-slide__buttons) { max-width: min(900px, 95%); }
+  .hero-slide__content--full > :not(.hero-slide__buttons) { max-width: 100%; }
+  .hero-slide__eyebrow {
+    color: var(--slide-desc-color, #ffffff);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .hero-slide__heading {
+    color: var(--slide-heading-color, #ffffff);
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    line-height: 1.15;
+    font-weight: 700;
+  }
+  .hero-slide__subheading {
+    color: var(--slide-heading-color, #ffffff);
+    margin: 0;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+  }
+  .hero-slide__description {
+    color: var(--slide-desc-color, #ffffff);
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  .hero-slide__content--shadow .hero-slide__eyebrow,
+  .hero-slide__content--shadow .hero-slide__heading,
+  .hero-slide__content--shadow .hero-slide__subheading,
+  .hero-slide__content--shadow .hero-slide__description {
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  }
+  .hero-slide__buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .hero-slide__content--center .hero-slide__buttons { justify-content: center; }
+  .hero-slide__content--right .hero-slide__buttons { justify-content: flex-end; }
+  .hero-slide__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 28px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: var(--button-border-radius-primary, 4px);
+    transition: opacity 0.2s ease, transform 0.15s ease;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .hero-slide__btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .hero-slide__btn--primary {
+    background-color: var(--slide-btn-bg, #ffffff);
+    color: var(--slide-btn-text, #000000);
+    border: 2px solid var(--slide-btn-bg, #ffffff);
+  }
+  .hero-slide__btn--secondary {
+    background-color: transparent;
+    color: var(--slide-btn-text, #ffffff);
+    border: 2px solid var(--slide-btn-text, #ffffff);
+  }
+  .hero-slide__btn--secondary:hover {
+    background-color: var(--slide-btn-text, #ffffff);
+    color: var(--slide-btn-bg, #000000);
+    opacity: 1;
+  }
+  @media screen and (min-width: 750px) {
+    .hero-slide__content { padding: 40px; }
+    .hero-slide__content--top { padding-block-start: 60px; }
+    .hero-slide__content--bottom { padding-block-end: 60px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Slide",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Slide" },
+    { "type": "checkbox", "id": "enabled", "label": "Enable slide", "default": true },
+    { "type": "header", "content": "Images" },
+    { "type": "image_picker", "id": "desktop_image", "label": "Desktop image" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image", "info": "Shown on screens up to 749px. Falls back to desktop image if not set." },
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow text" },
+    { "type": "text", "id": "heading", "label": "Heading" },
+    { "type": "text", "id": "subheading", "label": "Subheading" },
+    { "type": "textarea", "id": "description", "label": "Description" },
+    { "type": "header", "content": "Full slide link" },
+    { "type": "url", "id": "slide_link", "label": "Link for entire slide", "info": "Make the whole slide clickable. Buttons below still use their own links." },
+    { "type": "header", "content": "Primary button" },
+    { "type": "text", "id": "primary_button_text", "label": "Button text" },
+    { "type": "url", "id": "primary_button_link", "label": "Button link" },
+    { "type": "header", "content": "Secondary button" },
+    { "type": "text", "id": "secondary_button_text", "label": "Button text" },
+    { "type": "url", "id": "secondary_button_link", "label": "Button link" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select", "id": "text_alignment", "label": "Text alignment",
+      "options": [{ "value": "left", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "right", "label": "Right" }],
+      "default": "center"
+    },
+    {
+      "type": "select", "id": "vertical_position", "label": "Vertical position",
+      "options": [{ "value": "top", "label": "Top" }, { "value": "middle", "label": "Middle" }, { "value": "bottom", "label": "Bottom" }],
+      "default": "middle"
+    },
+    {
+      "type": "select", "id": "content_width", "label": "Content width",
+      "options": [{ "value": "small", "label": "Small" }, { "value": "medium", "label": "Medium" }, { "value": "large", "label": "Large" }, { "value": "full", "label": "Full width" }],
+      "default": "medium"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "heading_color", "label": "Heading color", "default": "#ffffff" },
+    { "type": "color", "id": "description_color", "label": "Description \/ eyebrow color", "default": "#ffffff" },
+    { "type": "color", "id": "button_text_color", "label": "Button text color", "default": "#000000" },
+    { "type": "color", "id": "button_bg_color", "label": "Button background color", "default": "#ffffff" },
+    { "type": "header", "content": "Overlay" },
+    { "type": "checkbox", "id": "overlay_enable", "label": "Enable overlay", "default": false },
+    { "type": "color", "id": "overlay_color", "label": "Overlay color", "default": "#000000", "visible_if": "{{ block.settings.overlay_enable }}" },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 80, "step": 5, "unit": "%", "default": 30, "visible_if": "{{ block.settings.overlay_enable }}" },
+    { "type": "header", "content": "Effects" },
+    { "type": "checkbox", "id": "text_shadow", "label": "Enable text shadow", "default": false }
+  ],
+  "presets": [{ "name": "Slide", "settings": { "enabled": true, "text_alignment": "center", "vertical_position": "middle", "content_width": "medium" } }]
+}
+{% endschema %}

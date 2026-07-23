@@ -1,0 +1,68 @@
+<li id="{{ variant.id }}" class="collection-item">
+  <div class="one-fourth-column">
+    <div class="product-info">
+      <span class="product_counter _hidden">1</span>
+        <svg class="added_to_cart _hidden" xmlns="http://www.w3.org/2000/svg" width="11" height="9" viewBox="0 0 11 9" fill="none">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.66802 1.37429L4.48642 7.85309L0.416016 4.46069L1.18402 3.53909L4.31362 6.14669L8.73201 0.625488L9.66802 1.37429Z" fill="#fff" stroke="#fff" stroke-width="0.5"/>
+        </svg>
+      <div class="flexi-popup-trigger"
+        data-title="{{ product_flexi.title | escape }}{% unless product_flexi.has_only_default_variant %} - {{ variant.title | escape }}{% endunless %}"
+        data-image="{{ product_flexi.featured_image | image_url: width: 300 }}"
+        data-description="{{ product_flexi.description | escape }}"
+        data-price="{{ variant.price | money }}"
+        data-compare-at-price="{{ variant.compare_at_price | money }}">
+        
+        {%- render 'make-your-own-bundle-img-wrapper', product_flexi: product_flexi, variant: variant -%}
+        
+        <div class="product_grid_items">
+          <h3 class="card-information__text h5">
+            {% comment %}
+            {%- if product_flexi.metafields.my_fields.product_meta_secondary_text != blank -%}
+              <span>{{- product_flexi.metafields.my_fields.product_meta_secondary_text | upcase -}}</span>
+            {%- else -%}
+              <span>{{ product_flexi.type | upcase }}</span>
+            {%- endif -%}
+            {% endcomment %}
+            <span class="product_flexi_title">
+              {%- unless product_flexi.has_only_default_variant -%}{{- variant.title }} - {% endunless -%}{{ product_flexi.title -}}
+            </span>
+            <span class="product_flexi_price">
+              {%- unless product_flexi.has_only_default_variant -%}{{- variant.price | money_without_trailing_zeros }} - {% endunless -%}{{ product_flexi.price | money_without_trailing_zeros -}}
+            </span>
+            {% if product.title == 'Ultimate Perfume Box' %}
+              <span style="margin-top:5px;">{{ 'Net Contents - 100ml' | upcase }}</span>
+            {% endif %}
+          </h3>
+  
+        </div>
+      </div>
+      {% capture property %}{{ product_flexi.title }}{% unless product_flexi.has_only_default_variant %} - {{ variant.title }}{% endunless %}/{{ variant.sku }}/{{ variant.id }}{% endcapture %}
+      <div id="checkboxes">
+        {% if variant.available and variant.inventory_quantity > 0 %}
+          <div class="line-item-property__field add-to-box">
+            <label>
+              <input type="hidden" autocomplete="off" name="properties[_ITEM{{ item_index }}]" value="No">
+              <input
+                id="{{ product_flexi.handle }}-{{ variant.id }}"
+                class="button"
+                type="checkbox"
+                data-id-products="tab_{{ tab_index }}_product"
+                data-id="tab_{{ tab_index }}_product_{{ product_index }}"
+                data-sku="{{ product_flexi.selected_or_first_available_variant.sku }}"
+                data-price="{{ product_flexi.selected_or_first_available_variant.price | divided_by: 100 }}"
+                autocomplete="off"
+                name="properties[_ITEM{{ item_index }}]"
+                value="{{ property }}"
+                disabled
+              ><span></span>
+            </label>
+          </div>
+        {% else %}
+          <div class="add-to-box sold-out">
+            <span>Sold Out</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</li>

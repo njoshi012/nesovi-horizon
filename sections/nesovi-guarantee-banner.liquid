@@ -1,0 +1,20 @@
+<div class="nesovi-guarantee">
+  <strong>🛡️ {{ section.settings.title }}</strong>
+  <p>{{ section.settings.text }}</p>
+</div>
+{% stylesheet %}
+.nesovi-guarantee{max-width:1100px;margin:0 auto;padding:0 24px 18px}
+.nesovi-guarantee{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:14px 16px}
+.nesovi-guarantee strong{font-size:13px;color:#1a1a1a;display:block}
+.nesovi-guarantee p{font-size:12px;color:#555;margin:4px 0 0}
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "NESOVI Guarantee Banner",
+  "settings": [
+    {"type": "text", "id": "title", "label": "Title", "default": "Won't tarnish with daily wear"},
+    {"type": "text", "id": "text", "label": "Text", "default": "Premium anti-tarnish — tested & proven by 1000+ NESOVI customers."}
+  ],
+  "presets": [{"name": "NESOVI Guarantee Banner"}]
+}
+{% endschema %}

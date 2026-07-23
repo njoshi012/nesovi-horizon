@@ -1,0 +1,20 @@
+{% if product.description != blank %}
+<div class="nesovi-desc">
+  <h2>{{ section.settings.heading }}</h2>
+  <div>{{ product.description }}</div>
+</div>
+{% endif %}
+{% stylesheet %}
+.nesovi-desc{max-width:1100px;margin:0 auto;padding:32px 24px;border-top:1px solid #eee}
+.nesovi-desc h2{font-size:24px;font-weight:600;text-transform:capitalize;margin:0 0 14px;color:#1a1a1a}
+.nesovi-desc div{font-size:14px;color:#555;line-height:1.7}
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "NESOVI Description",
+  "settings": [
+    {"type": "text", "id": "heading", "label": "Heading", "default": "About This Piece"}
+  ],
+  "presets": [{"name": "NESOVI Description"}]
+}
+{% endschema %}
