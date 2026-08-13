@@ -29,6 +29,7 @@
   endfor
 
   assign selected_variant = product.selected_or_first_available_variant
+  assign bundle_builder_form_id = 'BundleBuilderForm-' | append: section.id
 -%}
 
 {%- if flexi_box_bundle.size > 0 -%}
@@ -41,7 +42,7 @@
     data-required-total="{{ required_total }}"
     on:submit="/handleSubmit"
   >
-    {%- form 'product', product, id: 'BundleBuilderForm-' | append: section.id, data-type: 'add-to-cart-form' -%}
+    {%- form 'product', product, id: bundle_builder_form_id, data-type: 'add-to-cart-form' -%}
       <input
         type="hidden"
         name="id"
