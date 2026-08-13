@@ -1,5 +1,118 @@
 [
   {
+    "name": "FlexyPe",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Button Content"
+      },
+      {
+        "type": "text",
+        "id": "flexy_buynow_content",
+        "label": "Buy Now",
+        "default": "Buy it now"
+      },
+      {
+        "type": "text",
+        "id": "flexy_checkout_content",
+        "label": "Checkout",
+        "default": "Checkout"
+      },
+      {
+        "type": "header",
+        "content": "Button Layout Options"
+      },
+      {
+        "type": "select",
+        "id": "flexy_layout",
+        "label": "Button Layout",
+        "info": "Choose the layout style for your button",
+        "options": [
+          {
+            "value": "1",
+            "label": "Layout 1"
+          },
+          {
+            "value": "2",
+            "label": "Layout 2"
+          },
+          {
+            "value": "3",
+            "label": "Layout 3"
+          }
+        ],
+        "default": "2"
+      },
+      {
+        "type": "header",
+        "content": "Button Theme Options"
+      },
+      {
+        "type": "select",
+        "id": "flexy_theme",
+        "label": "Select Theme",
+        "info": "Choose a theme for the button appearance",
+        "options": [
+          {
+            "value": "default",
+            "label": "Default"
+          },
+          {
+            "value": "teal",
+            "label": "Teal"
+          },
+          {
+            "value": "light",
+            "label": "Light"
+          },
+          {
+            "value": "custom",
+            "label": "Custom"
+          }
+        ],
+        "default": "default"
+      },
+      {
+        "type": "header",
+        "content": "Custom Button Theme Colors"
+      },
+      {
+        "type": "color",
+        "id": "flexy_background_color",
+        "label": "Background Color",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "flexy_border_color",
+        "label": "Border Color",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "flexy_text_color",
+        "label": "Text Color",
+        "default": "#ffffff"
+      },
+      {
+        "type": "header",
+        "content": "Advanced Button Settings"
+      },
+      {
+        "type": "number",
+        "id": "flexy_height",
+        "label": "Height",
+        "default": 52
+      },
+      {
+        "type": "number",
+        "id": "flexy_border_radius",
+        "label": "Border Radius",
+        "default": 14
+      }
+    ]
+  },
+  {
     "name": "theme_info",
     "theme_name": "Horizon",
     "theme_version": "4.1.4",

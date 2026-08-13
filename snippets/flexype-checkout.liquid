@@ -1,0 +1,198 @@
+<script
+  src="https://static.flexype.in/scripts/flexype-v2.min.js"
+  type="module"
+  defer
+  onerror="window.flexypeCheckoutFailed = true; window.dispatchEvent(new Event('flexype:checkout-failed'));"
+></script>
+
+<script>
+  (() => {
+    const FLEXY_OPTIONS = {
+      watchdog: false,
+      readyTimeoutMs: 7000,
+    };
+
+    const BTN = '.flexy-btn';
+    const READY_EVENT = 'flexype:checkout-ready';
+    const FAILED_EVENT = 'flexype:checkout-failed';
+
+    let ready = !!window.flexypeCheckoutReady;
+    let failed = !!window.flexypeCheckoutFailed;
+    let firing = false;
+
+    const productFormFor = (btn) => {
+      const inside = btn.closest('form[action*="/cart/add"]');
+      if (inside) return inside;
+
+      const container = btn.closest(
+        'product-form, .product-form, [data-product-form], .product, [data-section-type="product"]',
+      );
+      if (container) {
+        const scoped = container.querySelector('form[action*="/cart/add"]');
+        if (scoped) return scoped;
+      }
+
+      const all = document.querySelectorAll('form[action*="/cart/add"]');
+      return all.length === 1 ? all[0] : null;
+    };
+
+    const nativeCheckout = () => {
+      window.location.href = '/checkout';
+    };
+
+    const nativeBuyNow = (btn) => {
+      const form = productFormFor(btn);
+      if (form) form.submit();
+      else nativeCheckout();
+    };
+
+    const runFlexy = (btn) => {
+      if (firing) return;
+      firing = true;
+      setTimeout(() => {
+        firing = false;
+      }, 1500);
+
+      document
+        .querySelectorAll('dialog[ref="dialog"]')
+        .forEach((d) => d.open && d.close());
+
+      if (btn.getAttribute('data-flexy-type') === 'buynow') {
+        if (typeof window.handleFlexyBuyNow === 'function') window.handleFlexyBuyNow(btn);
+        else nativeBuyNow(btn);
+      } else {
+        if (typeof window.openFlexyCheckout === 'function') window.openFlexyCheckout();
+        else nativeCheckout();
+      }
+    };
+
+    document.addEventListener(
+      'click',
+      (e) => {
+        const btn = e.target?.closest?.(BTN);
+        if (!btn || !e.isTrusted) return;
+
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (
+          btn.classList.contains('flexy-skeleton') ||
+          btn.disabled ||
+          btn.getAttribute('aria-disabled') === 'true'
+        )
+          return;
+        runFlexy(btn);
+      },
+      true,
+    );
+
+    const patched = new WeakSet();
+    const patchOnclick = (el) => {
+      if (patched.has(el)) return;
+      patched.add(el);
+      try {
+        Object.defineProperty(el, 'onclick', {
+          configurable: false,
+          enumerable: false,
+          set() {},
+          get() {
+            return null;
+          },
+        });
+      } catch (_) {}
+    };
+
+    const addToCartDisabled = (form) => {
+      const add = form?.querySelector(
+        "button[name='add'], input[name='add'], [name='add']",
+      );
+      return !!(
+        add &&
+        (add.disabled ||
+          add.hasAttribute('disabled') ||
+          add.getAttribute('aria-disabled') === 'true')
+      );
+    };
+
+    const soldOut = (btn) => {
+      if (btn.getAttribute('data-flexy-type') !== 'buynow') return false;
+      const form = productFormFor(btn);
+      return !!(form && addToCartDisabled(form));
+    };
+
+    const sync = (btn) => {
+      patchOnclick(btn);
+
+      const loading = !ready;
+      const disable = !loading && soldOut(btn);
+
+      btn.classList.toggle('flexy-skeleton', loading);
+
+      if (loading) btn.setAttribute('aria-busy', 'true');
+      else btn.removeAttribute('aria-busy');
+
+      if (disable && !btn.hasAttribute('disabled')) btn.setAttribute('disabled', '');
+      else if (!disable && btn.hasAttribute('disabled')) btn.removeAttribute('disabled');
+
+      if (loading || disable) btn.setAttribute('aria-disabled', 'true');
+      else btn.removeAttribute('aria-disabled');
+    };
+
+    const syncAll = () => document.querySelectorAll(BTN).forEach(sync);
+
+    let scheduled = false;
+    const scheduleSync = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        syncAll();
+      });
+    };
+
+    const mo = new MutationObserver((records) => {
+      for (const r of records) {
+        if (
+          r.type === 'attributes' &&
+          r.target instanceof Element &&
+          r.target.matches?.(BTN)
+        )
+          continue;
+        scheduleSync();
+        return;
+      }
+    });
+
+    mo.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['disabled', 'aria-disabled'],
+    });
+
+    const markReady = () => {
+      ready = true;
+      syncAll();
+    };
+
+    if (!ready) {
+      window.addEventListener(READY_EVENT, markReady, { once: true });
+
+      if (failed) markReady();
+      else window.addEventListener(FAILED_EVENT, markReady, { once: true });
+
+      if (FLEXY_OPTIONS.watchdog && FLEXY_OPTIONS.readyTimeoutMs) {
+        setTimeout(() => {
+          if (!ready) markReady();
+        }, CONFIG.readyTimeoutMs);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', syncAll, { once: true });
+    }
+
+    syncAll();
+  })();
+</script>

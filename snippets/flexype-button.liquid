@@ -1,0 +1,162 @@
+{%- comment -%}
+  =======================================================================
+  ⚠️  IMPORTANT ⚠️
+  This entire FlexyPe button integration code is critical for:
+    - Layouts, themes, and types rendering
+    - Checkout and Buy Now button functionality
+    - Metrics tracking and click handling
+    - DOM mutation observer for button state
+
+  ❌ DO NOT CHANGE, DELETE, OR MODIFY THIS FILE WITHOUT EXPLICIT KNOWLEDGE.
+  Any modification may break:
+    - FlexyPe payment flow
+    - Analytics & metric tracking
+    - Button rendering on your store
+
+  If you need changes, coordinate with the FlexyPe integration team.
+  =======================================================================
+{%- endcomment -%}
+
+{%- assign flexy_layout = settings.flexy_layout | default: '1' -%}
+{%- assign flexy_theme = settings.flexy_theme | default: 'default' -%}
+{%- assign flexy_type = type | default: 'checkout' -%}
+
+{%- assign flexy_height = settings.flexy_height | default: '47' -%}
+{%- assign flexy_height = flexy_height | append: 'px' -%}
+
+{%- assign flexy_border_radius = settings.flexy_border_radius | default: '10' -%}
+{%- assign flexy_border_radius = flexy_border_radius | append: 'px' -%}
+
+{%- assign background_color = settings.flexy_background_color | default: '#ffffff' -%}
+{%- assign border_color = settings.flexy_border_color | default: '#000000' -%}
+{%- assign text_color = settings.flexy_text_color | default: '#000000' -%}
+
+{%- assign layout_class = 'flexy-layout-' | append: flexy_layout -%}
+{%- assign theme_class = 'flexy-theme-' | append: flexy_theme -%}
+{%- assign type_class = 'flexy-type-' | append: flexy_type -%}
+
+{%- capture flexy_label -%}
+  {%- if flexy_type == "buynow" -%}
+    {{ settings.flexy_buynow_content | default: "Buy it now" }}
+  {%- else -%}
+    {{ settings.flexy_checkout_content | default: "Checkout" }}
+  {%- endif -%}
+{%- endcapture -%}
+
+<style>
+  /* ===== Base ===== */
+  .flexy-btn{
+    --flexy-border-w: 1.5px;
+    box-sizing:border-box;
+    position:relative;
+    width:100%;
+    height: {{ flexy_height | default: "47px" }};
+    border-radius: {{ flexy_border_radius | default: "10px" }};
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:0 16px;
+    font:inherit;
+    cursor:pointer;
+    user-select:none;
+    border:var(--flexy-border-w) solid transparent;
+    text-decoration:none;
+    transition: filter 0.25s ease-in-out, opacity 0.25s ease-in-out;
+  }
+  .flexy-btn:hover:not(:disabled):not(.flexy-skeleton) {
+    filter: brightness(1.1);
+  }
+  .flexy-btn:disabled {
+    filter: brightness(0.8);
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .flexy-buy-now-btn.flexy-loading > * {
+    visibility: hidden;
+  }
+  .flexy-left{display:inline-flex; align-items:center; gap:10px; min-width:0;}
+  .flexy-icon-left{width:18px;height:18px;display:block;flex:0 0 auto;opacity:.9;}
+  .flexy-label{ }
+  .flexy-right{display:flex;align-items:center;justify-content:flex-end;min-width:28px;}
+  .flexy-logos{height:28px;width:auto;display:block;scale: 1.3;}
+  .flexy-arrow{display:block;width:24px;height:24px;}
+  .flexy-arrow svg{display:block;width:100%;height:100%;}
+
+  /* ===== Loading skeleton (single toggle class: .flexy-skeleton) ===== */
+  .flexy-btn::after{
+    content:"";
+    position:absolute;
+    inset:calc(-1 * var(--flexy-border-w));
+    border-radius:inherit;
+    background: linear-gradient(115deg, #dde0e5 25%, #f0f2f5 37%, #dde0e5 63%);
+    background-size: 400% 100%;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.35s ease-in-out;
+  }
+  .flexy-btn.flexy-skeleton{
+    cursor: progress;
+  }
+  .flexy-btn.flexy-skeleton::after{
+    opacity:1;
+    animation: flexy-skeleton-sweep 1.3s ease infinite;
+  }
+  @keyframes flexy-skeleton-sweep{
+    0%   { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .flexy-btn.flexy-skeleton::after{ animation: none; }
+  }
+
+  /* ===== Layouts ===== */
+  .flexy-layout-2{ justify-content:center; }
+
+  /* ===== Themes ===== */
+  .flexy-theme-default{ background:#0037FF; color:#FFFFFF; --flexy-icon-fill:#FFFFFF; }
+  .flexy-theme-teal{ background:#00FFBB; color:#000000; --flexy-icon-fill:#000000; }
+  .flexy-theme-light{ background:#FFFFFF; color:#000000; border-color:#CFCFCF; --flexy-icon-fill:#0052FF; }
+  .flexy-theme-custom{ background: {{ background_color }}; color: {{ text_color }}; border-color: {{ border_color }}; --flexy-icon-fill: {{ text_color }}; }
+
+  /* ===== Types ===== */
+  .flexy-type-checkout{}
+  .flexy-type-buynow{}
+</style>
+
+<button
+  type="button"
+  class="flexy-btn flexy-skeleton {{ theme_class }} {{ layout_class }} {{ type_class }}"
+  aria-label="{{ flexy_label | strip }}"
+  data-flexy-type="{{ flexy_type }}"
+  aria-busy="true"
+  aria-disabled="true"
+>
+  <span class="flexy-left">
+    <svg class="flexy-icon-left" viewBox="0 0 37 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M33.6731 25.5459L12.9751 47.7331C11.7989 48.994 9.69973 47.9805 9.95553 46.2752L13.2837 24.0881C13.4126 23.2288 14.1508 22.5931 15.0197 22.5931H32.3895C33.9242 22.5931 34.72 24.4237 33.6731 25.5459Z"
+            fill="var(--flexy-icon-fill)" fill-opacity="0.8"/>
+      <path d="M2.928 27.1026L23.626 4.91539C24.8022 3.65451 26.9013 4.66797 26.6455 6.37324L23.3174 28.5604C23.1885 29.4197 22.4503 30.0554 21.5814 30.0554H4.2116C2.6769 30.0554 1.88112 28.2248 2.928 27.1026Z"
+            fill="var(--flexy-icon-fill)"/>
+    </svg>
+    <span class="flexy-label">{{ flexy_label | strip }}</span>
+  </span>
+
+  {%- if flexy_layout == '1' -%}
+    <span class="flexy-right">
+      <img
+        class="flexy-logos"
+        src="https://prod.cdn.flexype.in/assets/upi-icons-2.png"
+        alt="UPI options"
+        width="auto"
+        height="auto"
+      >
+    </span>
+  {%- elsif flexy_layout == '3' -%}
+    <span class="flexy-right flexy-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 12h12m-4-4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  {%- endif -%}
+</button>
