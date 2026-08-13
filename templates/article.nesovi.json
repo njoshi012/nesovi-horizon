@@ -1,9 +1,0 @@
-{
-  "sections": {
-    "main": {
-      "type": "nesovi-article",
-      "settings": {}
-    }
-  },
-  "order": ["main"]
-}

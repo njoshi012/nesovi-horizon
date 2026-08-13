@@ -1,17 +1,11 @@
 
 
+{% render 'text-block-styles' %}
+
 {%- liquid
   assign block_settings = block.settings
   assign product_resource = closest.product
   assign selected_variant = product_resource.selected_or_first_available_variant
-
-  assign show_savings = false
-  if block_settings.show_savings_badge and selected_variant.compare_at_price > selected_variant.price
-    assign show_savings = true
-    assign savings_amount = selected_variant.compare_at_price | minus: selected_variant.price
-    assign savings_percent = savings_amount | times: 100.0 | divided_by: selected_variant.compare_at_price | round
-    assign savings_amount_money = savings_amount | money
-  endif
 -%}
 
 {% liquid
@@ -51,6 +45,10 @@
   style="
     {% render 'typography-style', settings: block_settings %}
     {% render 'spacing-style', settings: block_settings %}
+    {% if block_settings.text_color != blank %}
+      --color: {{ block_settings.text_color }};
+      --color-rgb: {{ block_settings.text_color.rgb }};
+    {% endif %}
     --width: {{ block_settings.width }};
   "
   {{ block.shopify_attributes }}
@@ -60,12 +58,6 @@
     product_resource: product_resource,
     show_sale_price_first: block_settings.show_sale_price_first
   %}
-
-  {%- if show_savings -%}
-    <span class="savings-badge">
-      {{- 'content.you_save' | t: amount: savings_amount_money, percent: savings_percent -}}
-    </span>
-  {%- endif -%}
 
   {% if block_settings.show_tax_info %}
     <div class="tax-note">
@@ -98,35 +90,7 @@
   {%- endif -%}
 </product-price>
 
-{% # theme-check-disable %}
-{% stylesheet %}
-  .savings-badge {
-    display: none;
-    align-items: center;
-    vertical-align: middle;
-    margin-inline-start: var(--gap-xs, 0.5em);
-    padding: 0.25em 0.7em;
-    border-radius: var(--style-border-radius-pills, 999px);
-    background: var(--color-background);
-    color: var(--color-foreground);
-    font-size: 0.75em;
-    font-weight: 600;
-    line-height: 1.2;
-    white-space: nowrap;
-  }
-
-  .tax-note:empty {
-    display: none;
-  }
-
-  form.payment-terms {
-    padding-top: 0.5em;
-  }
-
-  .installments:not(:has(shopify-payment-terms)) {
-    display: none;
-  }
-{% endstylesheet %}
+{% render 'payment-terms-styles' %}
 
 {% schema %}
 {
@@ -145,13 +109,6 @@
       "type": "checkbox",
       "id": "show_sale_price_first",
       "label": "t:settings.show_sale_price_first",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_savings_badge",
-      "label": "Show \"You Save\" badge",
-      "info": "Shown next to the price when the product has a compare-at price.",
       "default": true
     },
     {
@@ -399,25 +356,14 @@
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
     },
     {
-      "type": "select",
-      "id": "color",
-      "label": "t:settings.color",
-      "options": [
-        {
-          "value": "var(--color-foreground)",
-          "label": "t:options.text"
-        },
-        {
-          "value": "var(--color-foreground-heading)",
-          "label": "t:options.heading"
-        },
-        {
-          "value": "var(--color-primary)",
-          "label": "t:options.link"
-        }
-      ],
-      "default": "var(--color-foreground)",
-      "visible_if": "{{ block.settings.type_preset != 'rte' }}"
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:settings.text_color",
+      "placeholder": "t:settings.default"
     },
     {
       "type": "header",
@@ -472,4 +418,3 @@
   ]
 }
 {% endschema %}
-{% # theme-check-enable %}
