@@ -54,8 +54,8 @@
       }, 1500);
 
       document
-        .querySelectorAll('dialog[ref="dialog"]')
-        .forEach((d) => d.open && d.close());
+        .querySelectorAll('dialog[open]')
+        .forEach((d) => d.close());
 
       if (btn.getAttribute('data-flexy-type') === 'buynow') {
         if (typeof window.handleFlexyBuyNow === 'function') window.handleFlexyBuyNow(btn);
