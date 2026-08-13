@@ -38,7 +38,11 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
+      /* Reserve 2 lines' worth of height even for shorter titles, so cards
+         with a 1-line title still align their price/button row with cards
+         whose title wraps to 2 lines. */
+      min-height: 2lh;
     }
   }
 
