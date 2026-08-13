@@ -95,6 +95,66 @@
         "padding-block-end": 72
       }
     },
+    "hero_slider_kVXmKF": {
+      "type": "hero-slider",
+      "blocks": {
+        "slide_4jcNJa": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/banner-3-desktop-banner-1920-724.png",
+            "mobile_image": "shopify://shop_images/banner-3-mobile-banner-800-1032.png",
+            "link": "",
+            "alt": ""
+          }
+        },
+        "slide_AjVU3V": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/banner-image-2-desktop-1920-724.png",
+            "mobile_image": "shopify://shop_images/banner-image-2-mobile-800-1032.png",
+            "link": "shopify://collections/antitarnish-necklace",
+            "alt": ""
+          }
+        },
+        "slide_Kwtye8": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/new-collection-banner-desktop-1920-720.png",
+            "mobile_image": "shopify://shop_images/new-collection-banner-mobile-800-1032.png",
+            "link": "shopify://products/antitarnish-gold-necklace-with-green-emerald-pendant-snake-chain-jewelry-for-women",
+            "alt": ""
+          }
+        },
+        "slide_ybVNyw": {
+          "type": "slide",
+          "settings": {
+            "desktop_image": "shopify://shop_images/banner-4-desktop-banner-1920-724.png",
+            "mobile_image": "shopify://shop_images/banner-4-mobile-banner-800-1032.png",
+            "link": "shopify://collections/western-indian-meena-kari-kada",
+            "alt": ""
+          }
+        },
+        "slide_qyK7CP": {
+          "type": "slide",
+          "settings": {
+            "link": "",
+            "alt": ""
+          }
+        }
+      },
+      "block_order": [
+        "slide_4jcNJa",
+        "slide_AjVU3V",
+        "slide_Kwtye8",
+        "slide_ybVNyw",
+        "slide_qyK7CP"
+      ],
+      "name": "Hero slider",
+      "settings": {
+        "autoplay": true,
+        "autoplay_speed": 5
+      }
+    },
     "product_list_fa6P9H": {
       "type": "product-list",
       "blocks": {
@@ -257,7 +317,7 @@
                 "line_height": "normal",
                 "letter_spacing": "normal",
                 "case": "none",
-                "text_color": "#4C0F2E",
+                "text_color": "#4c0f2e",
                 "padding-block-start": 10,
                 "padding-block-end": 10,
                 "padding-inline-start": 0,
@@ -312,7 +372,7 @@
                   "static": true,
                   "settings": {
                     "style_class": "button-custom",
-                    "custom_button_background": "#4C0F2E",
+                    "custom_button_background": "#4c0f2e",
                     "custom_button_text": "{{ settings.color_palette.background }}",
                     "custom_button_border": "{{ settings.color_palette.background }}"
                   },
@@ -887,6 +947,7 @@
   },
   "order": [
     "hero_jVaWmY",
+    "hero_slider_kVXmKF",
     "product_list_fa6P9H",
     "product_list_dermxX",
     "product_list_LiN6Jw"
