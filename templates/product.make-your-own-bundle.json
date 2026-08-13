@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "make_your_own_bundle": {
+      "type": "make-your-own-bundle",
+      "settings": {}
+    }
+  },
+  "order": ["make_your_own_bundle"]
+}

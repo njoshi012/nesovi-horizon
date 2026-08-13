@@ -1,0 +1,60 @@
+{%- doc -%}
+  Renders one selectable product card within a bundle step. Selection state,
+  limits, and the info popup are all handled by the parent
+  <bundle-builder-component> — see assets/make-your-own-bundle.js.
+
+  @param {object} product_flexi - The product this card represents
+  @param {object} variant - The specific variant this card represents
+  @param {object} product - The bundle (parent) product
+  @param {number} tab_index - Which step this card belongs to
+
+  @example
+  {%- render 'make-your-own-bundle-item', product_flexi: product_flexi, variant: variant, product: product, tab_index: tab_index -%}
+{%- enddoc -%}
+
+{%- liquid
+  assign item_title = product_flexi.title
+  unless product_flexi.has_only_default_variant
+    assign item_title = item_title | append: ' - ' | append: variant.title
+  endunless
+
+  assign item_value = item_title | append: '/' | append: variant.sku | append: '/' | append: variant.id
+-%}
+
+<li class="bundle-builder__item">
+  <div
+    class="bundle-builder__item-trigger"
+    data-title="{{ item_title | escape }}"
+    data-price="{{ variant.price | money }}"
+    data-compare-at-price="{{ variant.compare_at_price | money }}"
+    data-description="{{ product_flexi.description | strip_html | escape }}"
+    on:click="/openPopup"
+  >
+    <span class="bundle-builder__item-badge">
+      {{- 'icon-checkmark.svg' | inline_asset_content -}}
+    </span>
+
+    {%- render 'make-your-own-bundle-img-wrapper', product_flexi: product_flexi, variant: variant -%}
+
+    <p class="bundle-builder__item-title">{{ item_title }}</p>
+    <p class="bundle-builder__item-price">{{ variant.price | money }}</p>
+  </div>
+
+  {%- if variant.available and variant.inventory_quantity > 0 -%}
+    <div class="bundle-builder__select">
+      <label class="bundle-builder__select-label">
+        <input
+          type="checkbox"
+          class="bundle-builder__checkbox"
+          value="{{ item_value }}"
+          data-tab="{{ tab_index }}"
+          data-sku="{{ variant.sku }}"
+          data-price="{{ variant.price }}"
+          on:change="/handleCheckboxChange"
+        >
+      </label>
+    </div>
+  {%- else -%}
+    <div class="bundle-builder__sold-out">{{ 'blocks.sold_out' | t }}</div>
+  {%- endif -%}
+</li>

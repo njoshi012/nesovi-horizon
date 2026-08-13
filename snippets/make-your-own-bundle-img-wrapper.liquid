@@ -1,0 +1,68 @@
+{%- doc -%}
+  Renders the image slider for one bundle item card. Reused by both the grid
+  card and (cloned client-side, see assets/make-your-own-bundle.js) the info
+  popup — behavior lives entirely in <bundle-builder-component>.
+
+  @param {object} product_flexi - The product this item represents
+  @param {object} variant - The specific variant this item represents
+
+  @example
+  {%- render 'make-your-own-bundle-img-wrapper', product_flexi: product_flexi, variant: variant -%}
+{%- enddoc -%}
+
+{%- liquid
+  assign max_images = 5
+  assign image_count = 0
+-%}
+
+{%- capture slides -%}
+  {%- if product_flexi.has_only_default_variant or variant.featured_image == blank -%}
+    {%- for image in product_flexi.images limit: max_images -%}
+      <div class="bundle-builder__slide">
+        {{ image | image_url: width: 500 | image_tag: loading: 'lazy', fetchpriority: 'low' }}
+      </div>
+      {%- assign image_count = image_count | plus: 1 -%}
+    {%- endfor -%}
+  {%- else -%}
+    <div class="bundle-builder__slide">
+      {{ variant.featured_image | image_url: width: 500 | image_tag: loading: 'lazy', fetchpriority: 'low' }}
+    </div>
+    {%- assign image_count = 1 -%}
+
+    {%- for image in product_flexi.images -%}
+      {%- if forloop.index > 1 and image_count < max_images and image != variant.featured_image -%}
+        <div class="bundle-builder__slide">
+          {{ image | image_url: width: 500 | image_tag: loading: 'lazy', fetchpriority: 'low' }}
+        </div>
+        {%- assign image_count = image_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+<div class="bundle-builder__slider">
+  <div
+    class="bundle-builder__slider-track"
+    role="list"
+  >
+    {{ slides }}
+  </div>
+  {%- if image_count > 1 -%}
+    <div
+      class="bundle-builder__slider-dots"
+      role="tablist"
+    >
+      {%- for i in (1..max_images) -%}
+        {%- if i <= image_count -%}
+          <button
+            type="button"
+            class="bundle-builder__slider-dot{% if i == 1 %} bundle-builder__slider-dot--active{% endif %}"
+            aria-label="Go to image {{ i }}"
+            data-index="{{ i | minus: 1 }}"
+            on:click="/handleDotClick"
+          ></button>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>

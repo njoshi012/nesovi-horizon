@@ -1,0 +1,224 @@
+{%- doc -%}
+  "Make your own bundle" — a build-a-box wizard where the customer picks a
+  required number of items per step, then adds the bundle to cart as a single
+  line carrying `_ITEM{n}` / `_bundle_product{n}` properties.
+
+  Steps and their eligible products are configured entirely through
+  metafields on this product/its linked collections, not through this
+  section's settings:
+    - product.metafields.custom.flexi_box_bundle: list of steps, each with
+      `.collection` (a collection reference), `.mandatory_products` (how many
+      the customer must pick), and `.display_products` (how many to show).
+    - collection.metafields.custom.flexi_box_variant_sort_order: optional
+      list of variant GIDs controlling display order for that step's collection.
+{%- enddoc -%}
+
+{{ 'make-your-own-bundle.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'make-your-own-bundle.js' | asset_url }}"
+  type="module"
+></script>
+
+{%- liquid
+  assign flexi_box_bundle = product.metafields.custom.flexi_box_bundle.value
+  assign steps_count = flexi_box_bundle.size
+
+  assign required_total = 0
+  for flexi_box_step in flexi_box_bundle
+    assign required_total = required_total | plus: flexi_box_step.mandatory_products
+  endfor
+
+  assign selected_variant = product.selected_or_first_available_variant
+-%}
+
+{%- if flexi_box_bundle.size > 0 -%}
+  <bundle-builder-component
+    id="BundleBuilder-{{ section.id }}"
+    class="bundle-builder"
+    data-variant-id="{{ selected_variant.id }}"
+    data-sku="{{ selected_variant.sku }}"
+    data-price="{{ selected_variant.price }}"
+    data-required-total="{{ required_total }}"
+    on:submit="/handleSubmit"
+  >
+    {%- form 'product', product, id: 'BundleBuilderForm-' | append: section.id, data-type: 'add-to-cart-form' -%}
+      <input
+        type="hidden"
+        name="id"
+        value="{{ selected_variant.id }}"
+      >
+
+      <ul class="bundle-builder__tabs">
+        {%- for flexi_box_step in flexi_box_bundle -%}
+          <li>
+            <button
+              type="button"
+              class="bundle-builder__tab{% if forloop.first %} bundle-builder__tab--active{% endif %}"
+              data-tab="{{ forloop.index }}"
+              ref="tabs[]"
+              on:click="/handleTabClick"
+            >
+              {%- if steps_count > 1 -%}
+                <span class="bundle-builder__step-label">Step {{ forloop.index }}</span>
+              {%- endif -%}
+              <span class="bundle-builder__step-bubble">
+                <span
+                  class="bundle-builder__step-counter"
+                  data-tab="{{ forloop.index }}"
+                  ref="stepCounters[]"
+                >
+                  <svg
+                    class="bundle-builder__step-counter-check"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 11 9"
+                    fill="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M9.66802 1.37429L4.48642 7.85309L0.416016 4.46069L1.18402 3.53909L4.31362 6.14669L8.73201 0.625488L9.66802 1.37429Z"
+                      fill="#fff"
+                      stroke="#fff"
+                      stroke-width="0.5"
+                    />
+                  </svg>
+                </span>
+              </span>
+              <span class="bundle-builder__step-hint">
+                Choose {{ flexi_box_step.mandatory_products }} · {{ flexi_box_step.collection.value.title }}
+              </span>
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      <div class="bundle-builder__search">
+        <label class="visually-hidden" for="BundleBuilderSearch-{{ section.id }}">Search</label>
+        <input
+          type="text"
+          id="BundleBuilderSearch-{{ section.id }}"
+          class="bundle-builder__search-input"
+          ref="searchInput"
+          placeholder="Search…"
+          on:input="/handleSearchInput"
+        >
+        <button
+          type="button"
+          class="bundle-builder__search-clear"
+          aria-label="{{ 'actions.clear' | t }}"
+          on:click="/handleSearchClear"
+        >
+          {{- 'icon-close.svg' | inline_asset_content -}}
+        </button>
+      </div>
+
+      {%- for flexi_box_step in flexi_box_bundle -%}
+        {%- liquid
+          assign tab_index = forloop.index
+          assign flexi_box_collection = flexi_box_step.collection.value
+          assign product_limit = flexi_box_step.display_products
+          assign sort_order = flexi_box_collection.metafields.custom.flexi_box_variant_sort_order.value
+          assign product_index = 0
+          assign rendered_variant_ids = ''
+        -%}
+
+        <div
+          class="bundle-builder__panel{% if forloop.first %} bundle-builder__panel--active{% endif %}"
+          data-tab="{{ tab_index }}"
+          data-limit="{{ flexi_box_step.mandatory_products }}"
+          ref="panels[]"
+        >
+          <ul class="bundle-builder__grid">
+            {%- if sort_order != blank -%}
+              {%- for sorted_variant in sort_order -%}
+                {%- for item_product in flexi_box_collection.products -%}
+                  {%- for item_variant in item_product.variants -%}
+                    {%- if item_variant.id == sorted_variant.id -%}
+                      {%- assign product_index = product_index | plus: 1 -%}
+                      {%- if product_limit >= product_index -%}
+                        {%- render 'make-your-own-bundle-item',
+                          product_flexi: item_product,
+                          variant: item_variant,
+                          product: product,
+                          tab_index: tab_index
+                        -%}
+                      {%- endif -%}
+                      {%- assign rendered_variant_ids = rendered_variant_ids | append: item_variant.id | append: ',' -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endfor -%}
+              {%- endfor -%}
+            {%- endif -%}
+
+            {%- for item_product in flexi_box_collection.products -%}
+              {%- for item_variant in item_product.variants -%}
+                {%- unless rendered_variant_ids contains item_variant.id -%}
+                  {%- assign product_index = product_index | plus: 1 -%}
+                  {%- if product_limit >= product_index -%}
+                    {%- render 'make-your-own-bundle-item',
+                      product_flexi: item_product,
+                      variant: item_variant,
+                      product: product,
+                      tab_index: tab_index
+                    -%}
+                  {%- endif -%}
+                {%- endunless -%}
+              {%- endfor -%}
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endfor -%}
+
+      <div class="bundle-builder__sticky-bar">
+        <div class="bundle-builder__sticky-bar-inner">
+          <div class="bundle-builder__sticky-product">
+            {{
+              product.featured_image
+              | image_url: width: 150
+              | image_tag: loading: 'lazy', fetchpriority: 'low'
+            }}
+            <h3>{{ product.title }}</h3>
+          </div>
+
+          <span class="bundle-builder__price">{{ product.price | money }}</span>
+
+          <button
+            type="submit"
+            class="bundle-builder__submit"
+            ref="submitButton"
+            data-available="{{ selected_variant.available }}"
+            disabled
+          >
+            {%- if selected_variant.available -%}
+              {{ 'actions.add_to_cart' | t }}
+            {%- else -%}
+              {{ 'blocks.sold_out' | t }}
+            {%- endif -%}
+          </button>
+        </div>
+      </div>
+    {%- endform -%}
+
+    {%- render 'make-your-own-bundle-item-popup' -%}
+
+    <div
+      class="bundle-builder__toast"
+      ref="toast"
+    >
+      <span ref="toastText"></span>
+      added to box
+    </div>
+  </bundle-builder-component>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Make your own bundle",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Make your own bundle"
+    }
+  ]
+}
+{% endschema %}

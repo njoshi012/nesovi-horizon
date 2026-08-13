@@ -1,0 +1,33 @@
+{%- doc -%}
+  Renders the (empty) info popup shell for the bundle builder, populated at
+  runtime by <bundle-builder-component> when an item card is clicked.
+  Informational only — selection happens via the checkbox pill on the card.
+
+  @example
+  {%- render 'make-your-own-bundle-item-popup' -%}
+{%- enddoc -%}
+
+<div class="bundle-builder__popup-overlay" on:click="/closePopup"></div>
+
+<div class="bundle-builder__popup">
+  <button
+    type="button"
+    class="bundle-builder__popup-close"
+    aria-label="{{ 'actions.close' | t }}"
+    on:click="/closePopup"
+  >
+    {{- 'icon-close.svg' | inline_asset_content -}}
+  </button>
+
+  <div class="bundle-builder__popup-content">
+    <div class="bundle-builder__popup-images"></div>
+    <div class="bundle-builder__popup-details">
+      <h2 class="bundle-builder__popup-title"></h2>
+      <p>
+        <span class="bundle-builder__popup-price"></span>
+        <span class="bundle-builder__popup-compare-at-price"></span>
+      </p>
+      <div class="bundle-builder__popup-description"></div>
+    </div>
+  </div>
+</div>
