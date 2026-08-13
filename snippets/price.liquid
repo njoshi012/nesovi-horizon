@@ -72,6 +72,12 @@
     assign price_min = price_min | money
     assign price_max = price_max | money
   endif
+
+  # Drop a trailing ".00" — regardless of the store's currency format setting
+  assign price = price | replace_last: '.00', ''
+  assign compare_at_price = compare_at_price | replace_last: '.00', ''
+  assign price_min = price_min | replace_last: '.00', ''
+  assign price_max = price_max | replace_last: '.00', ''
 -%}
 
 <div ref="priceContainer">
@@ -120,6 +126,7 @@
       else
         assign unit_price = selected_variant.unit_price | money
       endif
+      assign unit_price = unit_price | replace_last: '.00', ''
     -%}
     {% render 'unit-price', price: unit_price, measurement: selected_variant.unit_price_measurement %}
   {%- endif -%}
