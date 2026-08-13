@@ -1,0 +1,207 @@
+/* Hero slider — self-contained section styles (no dependency on other theme CSS) */
+
+hero-slider,
+.hero-slider {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.hero-slider__track {
+  display: flex;
+  width: 100%;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* While the user is actively dragging, follow the pointer with no easing lag */
+.hero-slider--dragging .hero-slider__track {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slider__track {
+    transition-duration: 0.01s;
+  }
+}
+
+.hero-slider__slide {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 100%;
+  /* Mobile: taller banner */
+  aspect-ratio: 3 / 4;
+}
+
+@media screen and (min-width: 750px) {
+  .hero-slider__slide {
+    /* Desktop: wide banner */
+    aspect-ratio: 16 / 6;
+  }
+}
+
+.hero-slider__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-slider__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-slider__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.hero-slider__picture--placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f1f1f1;
+}
+
+.hero-slider__picture--placeholder svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== Arrows ===== */
+
+.hero-slider__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.85);
+  color: #111;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 0.2s ease;
+}
+
+.hero-slider__arrow:hover {
+  background: rgb(255 255 255 / 1);
+}
+
+.hero-slider__arrow:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+
+.hero-slider__arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.hero-slider__arrow--prev {
+  left: 16px;
+}
+
+.hero-slider__arrow--prev svg {
+  transform: rotate(180deg);
+}
+
+.hero-slider__arrow--next {
+  right: 16px;
+}
+
+@media screen and (max-width: 749px) {
+  .hero-slider__arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hero-slider__arrow svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ===== Dot navigation ===== */
+
+.hero-slider__dots {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.hero-slider__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.5);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.hero-slider__dot:hover {
+  background: rgb(255 255 255 / 0.8);
+}
+
+.hero-slider__dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.hero-slider__dot--active {
+  background: #fff;
+  transform: scale(1.3);
+}
+
+/* ===== Editor empty state ===== */
+
+.hero-slider--empty .hero-slider__empty-state {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  aspect-ratio: 16 / 6;
+  min-height: 200px;
+  background: #f1f1f1;
+  color: #666;
+  text-align: center;
+}
+
+.hero-slider__empty-state svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+}
+
+.hero-slider__empty-state p {
+  position: relative;
+  margin: 0;
+  padding: 8px 16px;
+  background: rgb(255 255 255 / 0.9);
+  border-radius: 4px;
+}

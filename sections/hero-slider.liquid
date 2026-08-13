@@ -1,0 +1,223 @@
+{{ 'hero-slider.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'hero-slider.js' | asset_url }}"
+  type="module"
+  fetchpriority="high"
+></script>
+
+{%- liquid
+  assign slide_count = section.blocks.size
+  assign show_controls = false
+  if slide_count > 1
+    assign show_controls = true
+  endif
+
+  assign mobile_widths = '375,550,750,1100' | split: ','
+  assign desktop_widths = '750,1100,1500,2000,2500,3200' | split: ','
+-%}
+
+<hero-slider
+  id="HeroSlider-{{ section.id }}"
+  class="hero-slider{% if slide_count == 0 %} hero-slider--empty{% endif %}"
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-autoplay-speed="{{ section.settings.autoplay_speed }}"
+>
+  {%- if slide_count > 0 -%}
+    <div class="hero-slider__track">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign slide_id = 'HeroSlider-' | append: section.id | append: '-slide-' | append: forloop.index0
+          assign has_link = false
+          if block.settings.link != blank
+            assign has_link = true
+          endif
+          if forloop.index0 == 0
+            assign loading = 'eager'
+            assign fetchpriority = 'high'
+          else
+            assign loading = 'lazy'
+            assign fetchpriority = 'auto'
+          endif
+        -%}
+
+        {%- capture slide_media -%}
+          {%- if block.settings.desktop_image != blank or block.settings.mobile_image != blank -%}
+            <picture class="hero-slider__picture">
+              {%- if block.settings.mobile_image != blank -%}
+                <source
+                  media="(max-width: 749px)"
+                  srcset="
+                    {%- for width in mobile_widths -%}
+                      {{ block.settings.mobile_image | image_url: width: width }} {{ width }}w{% unless forloop.last %},{% endunless %}
+                    {%- endfor -%}
+                  "
+                  sizes="100vw"
+                >
+              {%- endif -%}
+              {%- if block.settings.desktop_image != blank -%}
+                <source
+                  media="(min-width: 750px)"
+                  srcset="
+                    {%- for width in desktop_widths -%}
+                      {{ block.settings.desktop_image | image_url: width: width }} {{ width }}w{% unless forloop.last %},{% endunless %}
+                    {%- endfor -%}
+                  "
+                  sizes="100vw"
+                >
+              {%- endif -%}
+              <img
+                class="hero-slider__image"
+                src="{{ block.settings.desktop_image | default: block.settings.mobile_image | image_url: width: 1500 }}"
+                alt="{{ block.settings.alt | escape }}"
+                loading="{{ loading }}"
+                fetchpriority="{{ fetchpriority }}"
+                width="{{ block.settings.desktop_image.width | default: block.settings.mobile_image.width }}"
+                height="{{ block.settings.desktop_image.height | default: block.settings.mobile_image.height }}"
+              >
+            </picture>
+          {%- else -%}
+            <div class="hero-slider__picture hero-slider__picture--placeholder">
+              {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero-slider__placeholder-svg' }}
+            </div>
+          {%- endif -%}
+        {%- endcapture -%}
+
+        <div
+          id="{{ slide_id }}"
+          class="hero-slider__slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label="Slide {{ forloop.index }} of {{ slide_count }}"
+          {{ block.shopify_attributes }}
+        >
+          {%- if has_link -%}
+            <a
+              href="{{ block.settings.link }}"
+              class="hero-slider__link"
+              {% if block.settings.alt != blank %}
+                aria-label="{{ block.settings.alt | escape }}"
+              {% endif %}
+            >
+              {{ slide_media }}
+            </a>
+          {%- else -%}
+            {{ slide_media }}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    {%- if show_controls -%}
+      <button
+        type="button"
+        class="hero-slider__arrow hero-slider__arrow--prev"
+        aria-label="Previous slide"
+      >
+        {{- 'icon-arrow.svg' | inline_asset_content -}}
+      </button>
+      <button
+        type="button"
+        class="hero-slider__arrow hero-slider__arrow--next"
+        aria-label="Next slide"
+      >
+        {{- 'icon-arrow.svg' | inline_asset_content -}}
+      </button>
+
+      <div
+        class="hero-slider__dots"
+        role="tablist"
+      >
+        {%- for block in section.blocks -%}
+          <button
+            type="button"
+            class="hero-slider__dot{% if forloop.first %} hero-slider__dot--active{% endif %}"
+            role="tab"
+            aria-label="Go to slide {{ forloop.index }}"
+            aria-controls="HeroSlider-{{ section.id }}-slide-{{ forloop.index0 }}"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            data-index="{{ forloop.index0 }}"
+          ></button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  {%- elsif request.design_mode -%}
+    <div class="hero-slider__empty-state">
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero-slider__placeholder-svg' }}
+      <p>Add a slide block to get started.</p>
+    </div>
+  {%- endif -%}
+</hero-slider>
+
+{% schema %}
+{
+  "name": "Hero slider",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "Autoplay speed",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 5,
+      "visible_if": "{{ section.settings.autoplay }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "desktop_image",
+          "label": "Desktop image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Mobile image"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Redirect link"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Alt text",
+          "info": "Describe the image for accessibility and SEO."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Hero slider",
+      "category": "Image",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}
