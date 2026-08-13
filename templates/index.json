@@ -133,21 +133,13 @@
             "link": "shopify://collections/western-indian-meena-kari-kada",
             "alt": ""
           }
-        },
-        "slide_qyK7CP": {
-          "type": "slide",
-          "settings": {
-            "link": "",
-            "alt": ""
-          }
         }
       },
       "block_order": [
         "slide_4jcNJa",
         "slide_AjVU3V",
         "slide_Kwtye8",
-        "slide_ybVNyw",
-        "slide_qyK7CP"
+        "slide_ybVNyw"
       ],
       "name": "Hero slider",
       "settings": {
@@ -418,7 +410,7 @@
         "padding-block-end": 48
       }
     },
-    "product_list_dermxX": {
+    "product_list_q89Vhb": {
       "type": "product-list",
       "blocks": {
         "static-header": {
@@ -455,7 +447,7 @@
             "padding-inline-end": 0
           },
           "blocks": {
-            "product_list_text_VRbXKQ": {
+            "product_list_text_QUBzjA": {
               "type": "_product-list-text",
               "name": "t:names.collection_title",
               "settings": {
@@ -481,7 +473,7 @@
               },
               "blocks": {}
             },
-            "product_list_button_WCVydf": {
+            "product_list_button_UXaVHA": {
               "type": "_product-list-button",
               "name": "t:names.product_list_button",
               "settings": {
@@ -501,8 +493,8 @@
             }
           },
           "block_order": [
-            "product_list_text_VRbXKQ",
-            "product_list_button_WCVydf"
+            "product_list_text_QUBzjA",
+            "product_list_button_UXaVHA"
           ]
         },
         "static-product-card": {
@@ -523,7 +515,7 @@
             "padding-inline-end": 0
           },
           "blocks": {
-            "product_card_gallery_NfD3tC": {
+            "product_card_gallery_MgM8pp": {
               "type": "_product-card-gallery",
               "name": "t:names.product_card_media",
               "settings": {
@@ -540,7 +532,7 @@
               },
               "blocks": {}
             },
-            "product_title_WzhWJC": {
+            "product_title_Em4E94": {
               "type": "product-title",
               "name": "t:names.product_title",
               "settings": {
@@ -565,14 +557,14 @@
               },
               "blocks": {}
             },
-            "price_kGqThJ": {
+            "price_VjCTLD": {
               "type": "price",
               "name": "t:names.product_price",
               "settings": {
                 "show_sale_price_first": true,
                 "show_installments": false,
                 "show_tax_info": false,
-                "type_preset": "h5",
+                "type_preset": "custom",
                 "width": "100%",
                 "alignment": "left",
                 "font": "var(--font-body--family)",
@@ -580,15 +572,15 @@
                 "line_height": "normal",
                 "letter_spacing": "normal",
                 "case": "none",
-                "text_color": "",
-                "padding-block-start": 0,
-                "padding-block-end": 0,
+                "text_color": "#4c0f2e",
+                "padding-block-start": 10,
+                "padding-block-end": 10,
                 "padding-inline-start": 0,
                 "padding-inline-end": 0
               },
               "blocks": {}
             },
-            "buy_buttons_HxYpWB": {
+            "buy_buttons_cmGMEM": {
               "type": "buy-buttons",
               "name": "t:names.product_buy_buttons",
               "settings": {
@@ -634,8 +626,8 @@
                   "type": "add-to-cart",
                   "static": true,
                   "settings": {
-                    "style_class": "button",
-                    "custom_button_background": "{{ settings.color_palette.foreground }}",
+                    "style_class": "button-custom",
+                    "custom_button_background": "#4c0f2e",
                     "custom_button_text": "{{ settings.color_palette.background }}",
                     "custom_button_border": "{{ settings.color_palette.background }}"
                   },
@@ -653,10 +645,10 @@
             }
           },
           "block_order": [
-            "product_card_gallery_NfD3tC",
-            "product_title_WzhWJC",
-            "price_kGqThJ",
-            "buy_buttons_HxYpWB"
+            "product_card_gallery_MgM8pp",
+            "product_title_Em4E94",
+            "price_VjCTLD",
+            "buy_buttons_cmGMEM"
           ]
         }
       },
@@ -681,7 +673,7 @@
         "padding-block-end": 48
       }
     },
-    "product_list_LiN6Jw": {
+    "product_list_PHzCaz": {
       "type": "product-list",
       "blocks": {
         "static-header": {
@@ -718,7 +710,7 @@
             "padding-inline-end": 0
           },
           "blocks": {
-            "product_list_text_UgkHJH": {
+            "product_list_text_3rgn7w": {
               "type": "_product-list-text",
               "name": "t:names.collection_title",
               "settings": {
@@ -744,7 +736,7 @@
               },
               "blocks": {}
             },
-            "product_list_button_MXGQbx": {
+            "product_list_button_F6aeJr": {
               "type": "_product-list-button",
               "name": "t:names.product_list_button",
               "settings": {
@@ -764,8 +756,8 @@
             }
           },
           "block_order": [
-            "product_list_text_UgkHJH",
-            "product_list_button_MXGQbx"
+            "product_list_text_3rgn7w",
+            "product_list_button_F6aeJr"
           ]
         },
         "static-product-card": {
@@ -786,7 +778,7 @@
             "padding-inline-end": 0
           },
           "blocks": {
-            "product_card_gallery_kic4cN": {
+            "product_card_gallery_cDjJ3t": {
               "type": "_product-card-gallery",
               "name": "t:names.product_card_media",
               "settings": {
@@ -803,7 +795,7 @@
               },
               "blocks": {}
             },
-            "product_title_6t9pJF": {
+            "product_title_ricN34": {
               "type": "product-title",
               "name": "t:names.product_title",
               "settings": {
@@ -828,14 +820,14 @@
               },
               "blocks": {}
             },
-            "price_j4NFQd": {
+            "price_chnGUW": {
               "type": "price",
               "name": "t:names.product_price",
               "settings": {
                 "show_sale_price_first": true,
                 "show_installments": false,
                 "show_tax_info": false,
-                "type_preset": "h5",
+                "type_preset": "custom",
                 "width": "100%",
                 "alignment": "left",
                 "font": "var(--font-body--family)",
@@ -843,15 +835,15 @@
                 "line_height": "normal",
                 "letter_spacing": "normal",
                 "case": "none",
-                "text_color": "",
-                "padding-block-start": 0,
-                "padding-block-end": 0,
+                "text_color": "#4c0f2e",
+                "padding-block-start": 10,
+                "padding-block-end": 10,
                 "padding-inline-start": 0,
                 "padding-inline-end": 0
               },
               "blocks": {}
             },
-            "buy_buttons_HzzYQ6": {
+            "buy_buttons_NfrmNL": {
               "type": "buy-buttons",
               "name": "t:names.product_buy_buttons",
               "settings": {
@@ -897,8 +889,8 @@
                   "type": "add-to-cart",
                   "static": true,
                   "settings": {
-                    "style_class": "button",
-                    "custom_button_background": "{{ settings.color_palette.foreground }}",
+                    "style_class": "button-custom",
+                    "custom_button_background": "#4c0f2e",
                     "custom_button_text": "{{ settings.color_palette.background }}",
                     "custom_button_border": "{{ settings.color_palette.background }}"
                   },
@@ -916,16 +908,16 @@
             }
           },
           "block_order": [
-            "product_card_gallery_kic4cN",
-            "product_title_6t9pJF",
-            "price_j4NFQd",
-            "buy_buttons_HzzYQ6"
+            "product_card_gallery_cDjJ3t",
+            "product_title_ricN34",
+            "price_chnGUW",
+            "buy_buttons_NfrmNL"
           ]
         }
       },
       "name": "t:names.product_list",
       "settings": {
-        "collection": "western-anti-tarnish-earring",
+        "collection": "antitarnish-necklace",
         "layout_type": "grid",
         "carousel_on_mobile": true,
         "max_products": 8,
@@ -949,7 +941,7 @@
     "hero_jVaWmY",
     "hero_slider_kVXmKF",
     "product_list_fa6P9H",
-    "product_list_dermxX",
-    "product_list_LiN6Jw"
+    "product_list_q89Vhb",
+    "product_list_PHzCaz"
   ]
 }
