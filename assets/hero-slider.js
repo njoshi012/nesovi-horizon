@@ -15,10 +15,11 @@
 class HeroSlider extends HTMLElement {
   static SWIPE_THRESHOLD_PX = 50;
 
+  /** @type {HTMLElement | null} */
   #track = null;
+  /** @type {HTMLElement[]} */
   #slides = [];
-  #prevButton = null;
-  #nextButton = null;
+  /** @type {HTMLElement[]} */
   #dots = [];
 
   #activeIndex = 0;
@@ -26,35 +27,33 @@ class HeroSlider extends HTMLElement {
 
   #autoplayEnabled = false;
   #autoplaySpeed = 5000;
+  /** @type {number | null} */
   #autoplayTimer = null;
   #prefersReducedMotion = false;
 
   #isDragging = false;
+  /** @type {number | null} */
   #pointerId = null;
   #dragStartX = 0;
   #dragCurrentX = 0;
 
   connectedCallback() {
-    this.#track = this.querySelector('.hero-slider__track');
+    this.#track = /** @type {HTMLElement | null} */ (this.querySelector('.hero-slider__track'));
     if (!this.#track) return; // 0 slides: nothing rendered, nothing to wire up
 
-    this.#slides = Array.from(this.#track.children);
+    this.#slides = /** @type {HTMLElement[]} */ (Array.from(this.#track.children));
     this.#slideCount = this.#slides.length;
 
-    // A single slide is fully static — no arrows/dots exist in the markup,
-    // and there's nothing to swipe between, so skip all interaction wiring.
+    // A single slide is fully static — no dots exist in the markup, and
+    // there's nothing to swipe between, so skip all interaction wiring.
     if (this.#slideCount <= 1) return;
 
-    this.#prevButton = this.querySelector('.hero-slider__arrow--prev');
-    this.#nextButton = this.querySelector('.hero-slider__arrow--next');
-    this.#dots = Array.from(this.querySelectorAll('.hero-slider__dot'));
+    this.#dots = /** @type {HTMLElement[]} */ (Array.from(this.querySelectorAll('.hero-slider__dot')));
 
     this.#autoplayEnabled = this.dataset.autoplay === 'true';
-    this.#autoplaySpeed = (Number.parseFloat(this.dataset.autoplaySpeed) || 5) * 1000;
+    this.#autoplaySpeed = (Number.parseFloat(this.dataset.autoplaySpeed || '5') || 5) * 1000;
     this.#prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    this.#prevButton?.addEventListener('click', this.#handlePrevClick);
-    this.#nextButton?.addEventListener('click', this.#handleNextClick);
     this.#dots.forEach((dot) => dot.addEventListener('click', this.#handleDotClick));
 
     // Pause autoplay whenever the pointer or keyboard focus is inside the
@@ -76,8 +75,6 @@ class HeroSlider extends HTMLElement {
   disconnectedCallback() {
     this.#stopAutoplay();
 
-    this.#prevButton?.removeEventListener('click', this.#handlePrevClick);
-    this.#nextButton?.removeEventListener('click', this.#handleNextClick);
     this.#dots.forEach((dot) => dot.removeEventListener('click', this.#handleDotClick));
 
     this.removeEventListener('pointerenter', this.#handlePointerEnter);
@@ -91,6 +88,7 @@ class HeroSlider extends HTMLElement {
     this.#track?.removeEventListener('pointercancel', this.#handleDragEnd);
   }
 
+  /** @param {number} index */
   #goTo(index) {
     this.#activeIndex = (index + this.#slideCount) % this.#slideCount;
     this.#render();
@@ -100,6 +98,8 @@ class HeroSlider extends HTMLElement {
   #prev = () => this.#goTo(this.#activeIndex - 1);
 
   #render() {
+    if (!this.#track) return;
+
     this.#track.style.transform = `translateX(-${this.#activeIndex * 100}%)`;
 
     this.#slides.forEach((slide, i) => {
@@ -113,18 +113,10 @@ class HeroSlider extends HTMLElement {
     });
   }
 
-  #handlePrevClick = () => {
-    this.#prev();
-    this.#restartAutoplay();
-  };
-
-  #handleNextClick = () => {
-    this.#next();
-    this.#restartAutoplay();
-  };
-
+  /** @param {MouseEvent} event */
   #handleDotClick = (event) => {
-    const index = Number.parseInt(event.currentTarget.dataset.index, 10);
+    const dot = /** @type {HTMLElement} */ (event.currentTarget);
+    const index = Number.parseInt(dot.dataset.index || '', 10);
     if (Number.isNaN(index)) return;
     this.#goTo(index);
     this.#restartAutoplay();
@@ -150,7 +142,9 @@ class HeroSlider extends HTMLElement {
   #handlePointerEnter = () => this.#stopAutoplay();
   #handlePointerLeave = () => this.#restartAutoplay();
 
+  /** @param {PointerEvent} event */
   #handleDragStart = (event) => {
+    if (!this.#track) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
 
     this.#isDragging = true;
@@ -163,14 +157,16 @@ class HeroSlider extends HTMLElement {
     this.#stopAutoplay();
   };
 
+  /** @param {PointerEvent} event */
   #handleDragMove = (event) => {
-    if (!this.#isDragging || event.pointerId !== this.#pointerId) return;
+    if (!this.#track || !this.#isDragging || event.pointerId !== this.#pointerId) return;
 
     this.#dragCurrentX = event.clientX;
     const deltaPercent = ((this.#dragCurrentX - this.#dragStartX) / this.offsetWidth) * 100;
     this.#track.style.transform = `translateX(calc(-${this.#activeIndex * 100}% + ${deltaPercent}%))`;
   };
 
+  /** @param {PointerEvent} event */
   #handleDragEnd = (event) => {
     if (!this.#isDragging || event.pointerId !== this.#pointerId) return;
 
