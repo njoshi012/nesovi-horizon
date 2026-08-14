@@ -1,0 +1,101 @@
+{%- doc -%}
+  Renders one selectable product card within the bundle grid. Selection
+  state, the global pick-limit, and the info popup are all handled by the
+  parent <bundle-grid-component> — see assets/make-your-own-bundle-grid.js.
+
+  @param {object} product_flexi - The product this card represents
+  @param {object} variant - The specific variant this card represents
+  @param {string} cats - Space-separated filter indexes this product belongs
+    to, e.g. "1 3" when the product sits in both the 1st and 3rd bundle
+    collection.
+  @param {number} item_index - This item's position in the flattened grid,
+    used to key its `_ITEM{n}` line-item property.
+
+  @example
+  {%- render 'make-your-own-bundle-grid-item', product_flexi: product_flexi, variant: variant, cats: cats, item_index: item_index -%}
+{%- enddoc -%}
+
+{%- liquid
+  assign is_available = false
+  if variant.available and variant.inventory_quantity > 0
+    assign is_available = true
+  endif
+
+  assign card_title = product_flexi.title
+  unless product_flexi.has_only_default_variant
+    assign card_title = card_title | append: ' - ' | append: variant.title
+  endunless
+
+  assign item_value = card_title | append: '/' | append: variant.sku | append: '/' | append: variant.id
+-%}
+
+<li class="bundle-grid__card{% unless is_available %} bundle-grid__card--soldout{% endunless %}" data-cats="{{ cats }}">
+  <div class="bundle-grid__card-inner">
+    <div
+      class="bundle-grid__card-media bundle-builder__item-trigger"
+      data-title="{{ card_title | escape }}"
+      data-price="{{ variant.price | money }}"
+      data-compare-at-price="{{ variant.compare_at_price | money }}"
+      data-description="{{ product_flexi.description | strip_html | escape }}"
+      on:click="/openPopup"
+    >
+      {%- render 'make-your-own-bundle-img-wrapper', product_flexi: product_flexi, variant: variant -%}
+    </div>
+
+    <div class="bundle-grid__card-body">
+      <h3 class="bundle-grid__card-title">{{ card_title }}</h3>
+
+      {%- if product_flexi.metafields.custom.subtitle.value != blank -%}
+        <p class="bundle-grid__card-subtitle">{{ product_flexi.metafields.custom.subtitle.value }}</p>
+      {%- else -%}
+        <p class="bundle-grid__card-subtitle">{{ product_flexi.description | strip_html | truncate: 60 }}</p>
+      {%- endif -%}
+
+      {%- unless product_flexi.has_only_default_variant -%}
+        <span class="bundle-grid__card-variant">{{ variant.title }}</span>
+      {%- endunless -%}
+
+      <div class="bundle-grid__card-foot">
+        <div class="bundle-grid__card-prices">
+          <span class="bundle-grid__card-price">{{ variant.price | money_without_trailing_zeros }}</span>
+          {%- if variant.compare_at_price > variant.price -%}
+            <s class="bundle-grid__card-compare">{{ variant.compare_at_price | money_without_trailing_zeros }}</s>
+          {%- endif -%}
+        </div>
+
+        {%- if is_available -%}
+          <label class="bundle-grid__toggle" aria-label="Add {{ card_title | escape }} to your box">
+            <input
+              type="checkbox"
+              class="bundle-grid__toggle-input"
+              value="{{ item_value }}"
+              data-sku="{{ variant.sku }}"
+              data-price="{{ variant.price }}"
+              data-title="{{ card_title | escape }}"
+              {% comment %}
+                The sheet list shows the product name and the variant on
+                separate lines, so both are exposed independently of the
+                combined title used by the toast and the tray slot tooltip.
+              {% endcomment %}
+              data-product-title="{{ product_flexi.title | escape }}"
+              data-variant="{% unless product_flexi.has_only_default_variant %}{{ variant.title | escape }}{% endunless %}"
+              {% comment %} 200px covers the sheet's 52px thumb at 3x DPR {% endcomment %}
+              data-thumb="{{ product_flexi.featured_image | image_url: width: 200 }}"
+              on:change="/handleCheckboxChange"
+            >
+            <span class="bundle-grid__toggle-box" aria-hidden="true">
+              <svg class="bundle-grid__toggle-plus" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <svg class="bundle-grid__toggle-check" xmlns="http://www.w3.org/2000/svg" width="14" height="11" viewBox="0 0 11 9" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M9.66802 1.37429L4.48642 7.85309L0.416016 4.46069L1.18402 3.53909L4.31362 6.14669L8.73201 0.625488L9.66802 1.37429Z" fill="currentColor" stroke="currentColor" stroke-width="0.5"/>
+              </svg>
+            </span>
+          </label>
+        {%- else -%}
+          <span class="bundle-grid__card-soldout">{{ 'blocks.sold_out' | t }}</span>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</li>

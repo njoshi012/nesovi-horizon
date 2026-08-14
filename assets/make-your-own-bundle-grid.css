@@ -1,0 +1,1042 @@
+/*
+ * Make your own bundle — grid variant. A flat, filterable grid with a
+ * sticky selection tray, scoped under .bundle-grid so it never collides
+ * with the step-wise bundle's styles in make-your-own-bundle.css — both
+ * can run on different product templates.
+ */
+
+body.overflow-hidden {
+  overflow: hidden;
+}
+
+/* Colours come from the theme's own brand tokens (snippets/css-variables.liquid)
+   so this section follows any future palette change in theme settings. The
+   fallbacks mirror the current values in config/settings_data.json. */
+.bundle-grid {
+  --bundle-grid-ink: var(--COLOR-TEXT, #0b0b0b);
+  --bundle-grid-muted: var(--COLOR-TEXT-LIGHTEN, #545454);
+  --bundle-grid-border: var(--COLOR-BORDER, #d3d3d3);
+  --bundle-grid-price: var(--COLOR-TEXT, #0b0b0b);
+  --bundle-grid-sale: var(--COLOR-SALE-BG, #d02e2e);
+  --bundle-grid-btn-bg: var(--PRIMARY-BUTTONS-COLOR-BG, #000000);
+  --bundle-grid-btn-text: var(--PRIMARY-BUTTONS-COLOR-TEXT, #ffffff);
+  --bundle-grid-radius: 8px;
+  /* Shared page gutter. The theme's .page-width is only 0.1rem, which leaves
+     content touching the screen edge on mobile, so this section supplies its
+     own and drops it on desktop where page-width centres things anyway. */
+  --bundle-grid-gutter: 12px;
+  --bundle-grid-tray-h: 92px;
+  /* Clear the floating tray plus the gap it sits in, so the last row of
+     cards is never trapped underneath it. */
+  padding-bottom: calc(var(--bundle-grid-tray-h) + 40px);
+}
+
+.bundle-grid__empty {
+  padding: 2rem 0;
+  color: #b00;
+}
+
+/* ------------------------------------------------------------------ head */
+
+.bundle-grid__head {
+  padding-top: 1.25rem;
+  padding-inline: var(--bundle-grid-gutter);
+}
+
+.bundle-grid__note {
+  text-align: center;
+  font-size: 13px;
+  color: var(--bundle-grid-muted);
+  margin-bottom: 1rem;
+}
+
+.bundle-grid__heading {
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0 0 1.25rem;
+}
+
+/* ------------------------------------------------------------------ search */
+
+.bundle-grid__search {
+  position: relative;
+  max-width: 420px;
+  margin: 0 0 1rem;
+}
+
+.bundle-grid__search-input {
+  width: 100%;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid var(--bundle-grid-border);
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.bundle-grid__search-clear {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--bundle-grid-muted);
+  display: flex;
+}
+
+/* ------------------------------------------------------------------ filter pills */
+
+.bundle-grid__filters {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Momentum scrolling on iOS, and keep a sideways swipe inside the pill strip
+     instead of letting it bubble up into the browser's back-navigation gesture. */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding-bottom: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.bundle-grid__filters::-webkit-scrollbar {
+  display: none;
+}
+
+/* The strip's ancestors (a block <bundle-grid-component> wrapping a grid
+   .product__form) are max-content sized, so the row stretched to fit every
+   pill, leaving overflow-x nothing to scroll against. Pinning the width to
+   the viewport gives the scroll container a definite size, so the pills
+   overflow it and scroll instead of widening it. Also stops the page
+   rocking sideways.
+
+   The negative margin cancels .bundle-grid__head's gutter so the row starts
+   at the screen edge, and the matching padding puts the first and last pill
+   back in line with the heading. A pill half-visible at the edge is the
+   "swipe me" cue. */
+@media screen and (max-width: 749px) {
+  .bundle-grid__filters {
+    box-sizing: border-box;
+    width: 100vw;
+    max-width: 100vw;
+    margin-inline: calc(-1 * var(--bundle-grid-gutter));
+    padding-inline: var(--bundle-grid-gutter);
+  }
+}
+
+.bundle-grid__pill {
+  flex: 0 0 auto;
+  padding: 9px 18px;
+  border: 1px solid var(--bundle-grid-border);
+  border-radius: var(--bundle-grid-radius);
+  background: #fff;
+  color: var(--bundle-grid-ink);
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.bundle-grid__pill:hover {
+  border-color: #b5b5b5;
+}
+
+.bundle-grid__pill--active {
+  border-color: var(--bundle-grid-ink);
+  border-width: 2px;
+  padding: 8px 17px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ grid */
+
+/*
+ * Two mobile layouts, picked in the theme editor. The section's
+ * `mobile_layout` setting stamps --carousel or --grid onto the list; both
+ * collapse to the same grid on desktop, where the column count comes from
+ * --bundle-grid-cols.
+ */
+.bundle-grid__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Make each li a flex column so the card fills the row height via
+   flex-grow rather than height:100%, which resolves to auto here. */
+.bundle-grid__grid > .bundle-grid__card {
+  display: flex;
+}
+
+/* Carousel — one edge-to-edge swipe row. The theme's .page-width has almost
+   no gutter, so the row already reaches the viewport edge and the next card
+   clips there, which is what signals "swipe me". */
+.bundle-grid__grid--carousel {
+  display: flex;
+  gap: 12px;
+  /* overflow-x:auto forces overflow-y to compute to auto, so anything sitting
+     flush against the bottom edge — the card's bottom border — gets clipped.
+     The extra bottom padding gives it room. */
+  padding: 4px var(--bundle-grid-gutter) 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-left: var(--bundle-grid-gutter);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.bundle-grid__grid--carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.bundle-grid__grid--carousel > .bundle-grid__card {
+  flex: 0 0 44%;
+  scroll-snap-align: start;
+}
+
+/* Grid — two per row. Needs the same gutter as the carousel or the cards
+   sit flush against both screen edges. */
+.bundle-grid__grid--grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 4px var(--bundle-grid-gutter) 14px;
+}
+
+@media screen and (min-width: 750px) {
+  .bundle-grid__grid--carousel,
+  .bundle-grid__grid--grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    overflow: visible;
+    padding: 0;
+  }
+  .bundle-grid__grid--carousel > .bundle-grid__card {
+    flex: initial;
+  }
+  /* page-width centres content on desktop, so the gutter would only push the
+     header out of alignment with the grid. */
+  .bundle-grid__head {
+    padding-inline: 0;
+  }
+  .bundle-grid__heading {
+    font-size: 34px;
+  }
+}
+
+@media screen and (min-width: 1100px) {
+  .bundle-grid__grid--carousel,
+  .bundle-grid__grid--grid {
+    grid-template-columns: repeat(var(--bundle-grid-cols, 4), minmax(0, 1fr));
+  }
+}
+
+.bundle-grid__no-results {
+  text-align: center;
+  color: var(--bundle-grid-muted);
+  padding: 3rem 0;
+}
+
+/* ------------------------------------------------------------------ card */
+
+.bundle-grid__card {
+  list-style: none;
+  margin: 0;
+}
+
+.bundle-grid__card[hidden] {
+  display: none;
+}
+
+.bundle-grid__card-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  border: 1px solid var(--bundle-grid-border);
+  border-radius: var(--bundle-grid-radius);
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bundle-grid__card--selected .bundle-grid__card-inner {
+  border-color: var(--bundle-grid-ink);
+  box-shadow: inset 0 0 0 1px var(--bundle-grid-ink);
+}
+
+.bundle-grid__card--locked .bundle-grid__card-inner {
+  opacity: 0.55;
+}
+
+.bundle-grid__card--soldout .bundle-grid__card-inner {
+  opacity: 0.6;
+}
+
+/* The image is inset inside the card rather than bleeding it edge to edge,
+   so the card border reads as a frame around the whole tile. */
+.bundle-grid__card-media {
+  cursor: pointer;
+  padding: 8px 8px 0;
+}
+
+/* The shared image slider snippet (make-your-own-bundle-img-wrapper) ships
+   its own layout; just tame it to the card's proportions. */
+.bundle-grid__card-media .bundle-builder__slide img {
+  border-radius: 6px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.bundle-grid__card-media .bundle-builder__slider-track {
+  margin-bottom: 0;
+}
+
+.bundle-grid__card-media .bundle-builder__slider-dots {
+  margin: 6px 0 0;
+}
+
+.bundle-grid__card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 6px;
+  padding: 12px;
+}
+
+.bundle-grid__card-title {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  margin: 0;
+}
+
+.bundle-grid__card-subtitle {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bundle-grid-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bundle-grid__card-variant {
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #f4f4f4;
+  color: #333;
+}
+
+.bundle-grid__card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.bundle-grid__card-prices {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.bundle-grid__card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--bundle-grid-price);
+}
+
+.bundle-grid__card-compare {
+  font-size: 12px;
+  color: var(--bundle-grid-sale);
+}
+
+.bundle-grid__card-soldout {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bundle-grid-muted);
+}
+
+/* ------------------------------------------------------------------ toggle button */
+
+.bundle-grid__toggle {
+  margin: 0;
+  cursor: pointer;
+}
+
+.bundle-grid__toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.bundle-grid__toggle-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--bundle-grid-btn-bg);
+  border-radius: 6px;
+  background: var(--bundle-grid-btn-bg);
+  color: var(--bundle-grid-btn-text);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.bundle-grid__toggle-check {
+  display: none;
+}
+
+.bundle-grid__toggle-input:checked ~ .bundle-grid__toggle-box {
+  background: var(--bundle-grid-btn-text);
+  color: var(--bundle-grid-btn-bg);
+}
+
+.bundle-grid__toggle-input:checked ~ .bundle-grid__toggle-box .bundle-grid__toggle-plus {
+  display: none;
+}
+
+.bundle-grid__toggle-input:checked ~ .bundle-grid__toggle-box .bundle-grid__toggle-check {
+  display: block;
+}
+
+.bundle-grid__toggle-input:focus-visible ~ .bundle-grid__toggle-box {
+  outline: 2px solid #3f6ba1;
+  outline-offset: 2px;
+}
+
+.bundle-grid__toggle-input:disabled ~ .bundle-grid__toggle-box {
+  cursor: not-allowed;
+}
+
+@keyframes bundle-grid-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.bundle-grid__card--shake .bundle-grid__card-inner {
+  animation: bundle-grid-shake 0.25s ease;
+}
+
+/* ------------------------------------------------------------------ sticky tray */
+
+/* A floating card inset from the viewport edges, not a full-bleed bar — the
+   page shows through around it. */
+.bundle-grid__tray {
+  --bundle-grid-tray-inset: 10px;
+  position: fixed;
+  left: var(--bundle-grid-tray-inset);
+  right: var(--bundle-grid-tray-inset);
+  bottom: var(--bundle-grid-tray-inset);
+  /* Above the theme's fixed page chrome (nav bar), but well below the quick
+     view popup overlay so that still covers the tray. */
+  z-index: 100;
+  background: #fff;
+  border: 1px solid var(--bundle-grid-border);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+}
+
+@media screen and (min-width: 750px) {
+  .bundle-grid__tray {
+    --bundle-grid-tray-inset: 16px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 1100px;
+  }
+}
+
+.bundle-grid__tray-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  /* Inside a floating card the page gutter is irrelevant — this needs its own
+     padding, overriding the .page-width class on the element. */
+  padding: 12px 14px;
+  min-height: var(--bundle-grid-tray-h);
+  box-sizing: border-box;
+}
+
+.bundle-grid__tray-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.bundle-grid__tray-slots {
+  display: flex;
+  gap: 8px;
+}
+
+.bundle-grid__tray-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px dashed #c4c4c4;
+  border-radius: 6px;
+  background: #fafafa;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.bundle-grid__tray-slot--filled {
+  border-style: solid;
+  border-color: var(--bundle-grid-border);
+  background: #fff;
+}
+
+/* Sized by max-* rather than width/height 100% so the intrinsic aspect ratio
+   always wins and the flex parent can never squeeze it. */
+.bundle-grid__tray-slot img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.bundle-grid__tray-slot-plus {
+  font-size: 20px;
+  line-height: 1;
+  color: #9a9a9a;
+}
+
+.bundle-grid__tray-copy {
+  min-width: 0;
+}
+
+.bundle-grid__tray-count {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bundle-grid__tray-hint {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--bundle-grid-muted);
+  line-height: 1.2;
+}
+
+.bundle-grid__tray-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+}
+
+/* Must not shrink: the Add to Cart button is flex: 1 1 auto, and when the
+   struck-through subtotal is absent it grew wide enough to squeeze this
+   column until "Deal Price:" wrapped onto two lines. */
+.bundle-grid__tray-price {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  flex: 0 0 auto;
+}
+
+.bundle-grid__tray-price-label {
+  font-size: 12px;
+  color: var(--bundle-grid-muted);
+  white-space: nowrap;
+}
+
+.bundle-grid__tray-price-amounts {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.bundle-grid__tray-price-amounts > span {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.bundle-grid__tray-price-compare {
+  font-size: 13px;
+  color: var(--bundle-grid-muted);
+}
+
+.bundle-grid__tray-price-compare[hidden] {
+  display: none;
+}
+
+.bundle-grid__tray-atc {
+  min-width: 190px;
+  background: var(--bundle-grid-btn-bg);
+  color: var(--bundle-grid-btn-text);
+  border: 0;
+  border-radius: 6px;
+  padding: 14px 24px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.bundle-grid__tray-atc:disabled {
+  background: #ddd;
+  color: #8a8a8a;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.bundle-grid__tray-atc--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Opens the "Your Box" sheet. The whole left block is clickable too, so this
+   is an affordance more than the only target. */
+.bundle-grid__tray-expand {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: none;
+  color: var(--bundle-grid-ink);
+  cursor: pointer;
+}
+
+/* Mobile — slots, counter and collapse sit on one compact row; price and
+   CTA drop to a second row so the button keeps a usable width. The collapse
+   control moves inline rather than floating above. */
+@media screen and (max-width: 749px) {
+  .bundle-grid {
+    /* Two compact rows at ~10px padding. */
+    --bundle-grid-tray-h: 108px;
+  }
+  .bundle-grid__heading {
+    font-size: 20px;
+    margin-bottom: 1rem;
+  }
+  .bundle-grid__tray-inner {
+    flex-wrap: wrap;
+    /* Row gap only — the two rows sit tight together. Note the horizontal
+       padding must be restated here or it falls back to the desktop rule
+       being overridden and the card loses its gutter. */
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .bundle-grid__tray-left {
+    width: 100%;
+    gap: 10px;
+    padding-right: 34px;
+  }
+  .bundle-grid__tray-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  /*
+   * The price column is pinned to a fixed width and the button takes
+   * everything that is left. That fixes both failure modes at once: the
+   * button always starts at the same x (the price column can't change
+   * width under it) and it always ends flush against the card's padding,
+   * so there is no dead space on the right.
+   */
+  .bundle-grid__tray-price {
+    flex: 0 0 132px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .bundle-grid__tray-atc {
+    min-width: 0;
+    flex: 1 1 auto;
+    padding: 11px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  .bundle-grid__tray-slots {
+    gap: 6px;
+  }
+  .bundle-grid__tray-slot {
+    width: 36px;
+    height: 36px;
+    border-radius: 5px;
+  }
+  .bundle-grid__tray-count {
+    font-size: 14px;
+  }
+  .bundle-grid__tray-hint {
+    font-size: 11px;
+  }
+  .bundle-grid__tray-price-label {
+    font-size: 11px;
+  }
+  .bundle-grid__tray-price-amounts > span {
+    font-size: 18px;
+  }
+  .bundle-grid__tray-price-compare {
+    font-size: 12px;
+  }
+  /* Pinned to the first row rather than vertically centred on the whole card. */
+  .bundle-grid__tray-expand {
+    top: 22px;
+    right: 10px;
+    transform: none;
+    height: 26px;
+    width: 26px;
+  }
+}
+
+/* ------------------------------------------------------------------ "Your Box" sheet */
+
+/* Full-screen dim behind the expanded card. Sibling of the tray, since the
+   tray is transform-centred on desktop and would otherwise contain it. */
+.bundle-grid__sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.bundle-grid__sheet-backdrop--open {
+  opacity: 1;
+}
+
+.bundle-grid__sheet-backdrop[hidden] {
+  display: none;
+}
+
+/* The panel is part of the tray card, not a separate sheet. */
+.bundle-grid__sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bundle-grid__sheet[hidden] {
+  display: none;
+}
+
+/*
+ * The single most important rule here: unless the tray is expanded, the
+ * panel takes up no space at all. Layout must never depend on a timer —
+ * fading the panel out and removing it later would leave the card standing
+ * at full height with invisible content for a moment.
+ */
+.bundle-grid__tray:not(.bundle-grid__tray--expanded) .bundle-grid__sheet {
+  display: none;
+}
+
+/* Summary row gives way to the panel while open. */
+.bundle-grid__tray--expanded .bundle-grid__tray-inner {
+  display: none;
+}
+
+.bundle-grid__tray--expanded {
+  max-height: calc(100vh - 2 * var(--bundle-grid-tray-inset));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media screen and (min-width: 750px) {
+  /* Keep the expanded card a sensible reading width rather than stretching
+     it across the tray's full 1100px. */
+  .bundle-grid__tray--expanded {
+    width: min(460px, calc(100% - 32px));
+    max-height: min(80vh, 640px);
+  }
+}
+
+.bundle-grid__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 12px;
+  flex: 0 0 auto;
+}
+
+.bundle-grid__sheet-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.bundle-grid__sheet-close {
+  border: 0;
+  background: none;
+  padding: 4px;
+  display: flex;
+  cursor: pointer;
+  color: var(--bundle-grid-ink);
+}
+
+.bundle-grid__sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 14px 14px;
+}
+
+.bundle-grid__sheet-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bundle-grid__sheet-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bundle-grid-border);
+}
+
+.bundle-grid__sheet-item-thumb {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f4f4f4;
+  flex: 0 0 auto;
+}
+
+.bundle-grid__sheet-item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bundle-grid__sheet-item-title {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.bundle-grid__sheet-item-variant {
+  margin: 0;
+  font-size: 12px;
+  color: var(--bundle-grid-muted);
+  line-height: 1.3;
+}
+
+.bundle-grid__sheet-item-variant:empty {
+  display: none;
+}
+
+/* Price above, Remove beneath, both hard right. */
+.bundle-grid__sheet-item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  flex: 0 0 auto;
+  align-self: stretch;
+}
+
+.bundle-grid__sheet-item-remove {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--bundle-grid-muted);
+  cursor: pointer;
+}
+
+.bundle-grid__sheet-item-remove:hover {
+  text-decoration: underline;
+}
+
+.bundle-grid__sheet-item-price {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Unfilled slots */
+
+.bundle-grid__sheet-item--empty {
+  align-items: center;
+  gap: 14px;
+}
+
+.bundle-grid__sheet-item-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  border: 1px dashed #c4c4c4;
+  border-radius: 6px;
+  color: #9a9a9a;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.bundle-grid__sheet-item-placeholder-label {
+  font-size: 13px;
+  color: var(--bundle-grid-muted);
+}
+
+.bundle-grid__sheet-empty {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--bundle-grid-muted);
+}
+
+/* Bill summary */
+
+.bundle-grid__sheet-bill {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f6f6f6;
+}
+
+.bundle-grid__sheet-bill-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bundle-grid__sheet-bill-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Uses the theme's own savings colour rather than an invented green. */
+.bundle-grid__sheet-saved {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--COLOR-SALE-TEXT, #ffffff);
+  background: var(--bundle-grid-sale);
+}
+
+.bundle-grid__sheet-bill-rows {
+  margin: 0;
+}
+
+.bundle-grid__sheet-bill-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  padding: 5px 0;
+}
+
+.bundle-grid__sheet-bill-row dt,
+.bundle-grid__sheet-bill-row dd {
+  margin: 0;
+}
+
+.bundle-grid__sheet-bill-row--discount dd {
+  color: var(--bundle-grid-sale);
+  font-weight: 600;
+}
+
+.bundle-grid__sheet-bill-row--total {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bundle-grid-border);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.bundle-grid__sheet-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--bundle-grid-border);
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+/* Mirrors the tray: fixed price column, button fills the rest. */
+.bundle-grid__sheet-foot .bundle-grid__tray-price {
+  flex: 0 0 132px;
+}
+
+.bundle-grid__sheet-foot .bundle-grid__tray-atc {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* ------------------------------------------------------------------ info popup */
+/*
+ * The shared info popup (snippets/make-your-own-bundle-item-popup.liquid,
+ * styled in make-your-own-bundle.css) is tuned for the step wizard, whose
+ * sticky cart bar sits at z-index 6. This section's floating tray sits much
+ * higher (z-index 100) to clear the theme's nav bar, so the popup and its
+ * overlay need raising above both the tray and its backdrop or they render
+ * hidden underneath them.
+ */
+.bundle-grid .bundle-builder__popup-overlay {
+  z-index: 200;
+}
+
+.bundle-grid .bundle-builder__popup {
+  z-index: 201;
+}
+
+/* ------------------------------------------------------------------ toast */
+/* Mirrors <bundle-builder-component>'s toast in make-your-own-bundle.css. */
+
+.bundle-grid__toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bundle-grid-tray-h, 92px) + 30px);
+  z-index: 101;
+  display: table;
+  max-width: 300px;
+  width: 100%;
+  padding: 10px 16px;
+  background: #000;
+  color: #fff;
+  border-radius: 4px;
+  text-align: center;
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.bundle-grid__toast--visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
