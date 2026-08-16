@@ -52,6 +52,7 @@
       on:submit="/handleSubmit"
       data-quantity-default="{% if product.selected_or_first_available_variant.quantity_rule.min %}{{ product.selected_or_first_available_variant.quantity_rule.min }}{% else %}1{% endif %}"
       data-quantity-error-max="{{ 'products.product.quantity_error_max' | t }}"
+      data-add-to-cart-error="{{ 'products.product.add_to_cart_error' | t }}"
     >
       <div
         class="visually-hidden"

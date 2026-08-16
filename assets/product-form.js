@@ -938,9 +938,10 @@ class ProductFormComponent extends Component {
    * Drains the add-to-cart queue accumulated while a variant change was in flight.
    *
    * Each queued add resolves against the selection and generation that were active when Add was
-   * clicked. If no variant resolves, that queued add is aborted so a stale, empty, or maxed
-   * variant id is never sent. The add-to-cart button is already disabled for unavailable
-   * selections in #onProductSelect, so no further UI change is needed.
+   * clicked. If no variant resolves (e.g. the section-render fetch errored, timed out, or the
+   * selection became unavailable), that queued add is dropped so a stale, empty, or maxed variant
+   * id is never sent — but the add-to-cart button already played its "added" animation optimistically
+   * when the click was queued, so the shopper needs to be told the add didn't actually happen.
    */
   async #drainAddToCartQueue() {
     if (this.#addToCartQueue.length === 0) return;
@@ -957,7 +958,39 @@ class ProductFormComponent extends Component {
       }
     }
 
+    if (resolvedItems.length < queuedItems.length) {
+      this.#showAddToCartError(this.dataset.addToCartError || 'Something went wrong, please try again.');
+    }
+
     this.#processBatchAddToCart(resolvedItems);
+  }
+
+  /**
+   * Displays an add-to-cart error message and announces it, reusing the same error UI as a
+   * failed /cart/add response.
+   * @param {string} message
+   */
+  #showAddToCartError(message) {
+    const { addToCartTextError } = this.refs;
+    if (!addToCartTextError) return;
+
+    if (this.#timeout) clearTimeout(this.#timeout);
+
+    addToCartTextError.classList.remove('hidden');
+
+    const textNode = addToCartTextError.childNodes[2];
+    if (textNode) {
+      textNode.textContent = message;
+    } else {
+      addToCartTextError.appendChild(document.createTextNode(message));
+    }
+
+    this.#setLiveRegionText(message);
+
+    this.#timeout = setTimeout(() => {
+      addToCartTextError.classList.add('hidden');
+      this.#clearLiveRegionText();
+    }, ERROR_MESSAGE_DISPLAY_DURATION);
   }
 
   /**

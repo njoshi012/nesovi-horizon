@@ -8,7 +8,7 @@
 <script>
   (() => {
     const FLEXY_OPTIONS = {
-      watchdog: false,
+      watchdog: true,
       readyTimeoutMs: 7000,
     };
 
@@ -185,7 +185,7 @@
       if (FLEXY_OPTIONS.watchdog && FLEXY_OPTIONS.readyTimeoutMs) {
         setTimeout(() => {
           if (!ready) markReady();
-        }, CONFIG.readyTimeoutMs);
+        }, FLEXY_OPTIONS.readyTimeoutMs);
       }
     }
 

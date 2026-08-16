@@ -4,6 +4,11 @@ import { OverflowList } from '@theme/overflow-list';
 import { yieldToMainThread, getViewParameterValue, ResizeNotifier } from '@theme/utilities';
 import { ProductSelectEvent } from '@shopify/events';
 
+// Safety net for the section-render fetch below: without this, a stalled request (no response,
+// no network error) never resolves or rejects, leaving #variantChangeInProgress stuck `true` in
+// product-form.js forever and any Add to Cart click queued indefinitely instead of submitted.
+const VARIANT_FETCH_TIMEOUT_MS = 15000;
+
 /**
  * @typedef {object} VariantPickerRefs
  * @property {HTMLFieldSetElement[]} fieldsets - The fieldset elements.
@@ -311,6 +316,8 @@ export default class VariantPicker extends Component {
     // We use this to abort the previous fetch request if it's still pending.
     this.#abortController?.abort();
     this.#abortController = new AbortController();
+    const { signal } = this.#abortController;
+    const timeoutId = setTimeout(() => this.#abortController?.abort(), VARIANT_FETCH_TIMEOUT_MS);
 
     const deferredEventPromise = ProductSelectEvent.createPromise();
     const selectedOptions = this.getAllSelectedOptions();
@@ -332,7 +339,7 @@ export default class VariantPicker extends Component {
       })
     );
 
-    fetch(requestUrl, { signal: this.#abortController.signal })
+    fetch(requestUrl, { signal })
       .then((response) => response.text())
       .then((responseText) => {
         this.#pendingRequestUrl = undefined;
@@ -422,7 +429,8 @@ export default class VariantPicker extends Component {
         } else {
           console.error(error);
         }
-      });
+      })
+      .finally(() => clearTimeout(timeoutId));
   }
 
   /**
